@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -21,7 +22,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
         <aside className="self-start rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto">
           <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">OpenClaw</p>
+            <div className="mb-2 flex items-center gap-2">
+              <Image src="/icon/claw-mc-32.png" alt="Mission Control icon" width={24} height={24} className="rounded" />
+              <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">OpenClaw</p>
+            </div>
             <h1 className="text-2xl font-semibold">Mission Control</h1>
           </div>
           <nav className="space-y-2">
