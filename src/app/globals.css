@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #070b14;
+  --foreground: #e5edf7;
 }
 
 @theme inline {
@@ -12,15 +12,94 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+}
+
+button,
+a,
+[role="button"],
+select,
+summary,
+.fc-event {
+  cursor: pointer;
+}
+
+.fc {
+  --fc-border-color: rgba(148, 163, 184, 0.2);
+  --fc-page-bg-color: rgba(2, 6, 23, 0.25);
+  --fc-neutral-bg-color: rgba(15, 23, 42, 0.45);
+  --fc-list-event-hover-bg-color: rgba(34, 211, 238, 0.12);
+  --fc-today-bg-color: rgba(34, 211, 238, 0.08);
+  color: #e2e8f0;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-theme-standard td,
+.fc .fc-theme-standard th,
+.fc .fc-theme-standard .fc-scrollgrid {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fc .fc-col-header-cell,
+.fc .fc-timegrid-slot,
+.fc .fc-daygrid-day,
+.fc .fc-list-day-cushion {
+  background: rgba(2, 6, 23, 0.18);
+}
+
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-list-event-time,
+.fc .fc-list-event-title {
+  color: #dbeafe !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+.fc .fc-button {
+  background: rgba(34, 211, 238, 0.15) !important;
+  border-color: rgba(34, 211, 238, 0.45) !important;
+  color: #dbeafe !important;
+}
+
+.fc .fc-button.fc-button-active {
+  background: rgba(34, 211, 238, 0.3) !important;
+}
+
+.fc .fc-timegrid-slot {
+  height: 2rem;
+}
+
+.fc .fc-timegrid-event {
+  border-radius: 8px;
+}
+
+.fc .fc-event-title,
+.fc .fc-daygrid-event .fc-event-title {
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
+.fc .fc-event-main {
+  overflow: hidden;
 }

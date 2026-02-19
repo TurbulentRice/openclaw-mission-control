@@ -1,0 +1,20 @@
+[
+  {
+    "id": "task-foundation",
+    "title": "Mission Control foundation scaffold",
+    "description": "Base infrastructure, docs, and layout shell.",
+    "status": "done",
+    "owner": "agent",
+    "createdAt": 1771500000000,
+    "updatedAt": 1771503600000
+  },
+  {
+    "id": "task-feature-planning",
+    "title": "Define next feature slice",
+    "description": "Select the next vertical feature and acceptance criteria.",
+    "status": "next",
+    "owner": "operator",
+    "createdAt": 1771503600000,
+    "updatedAt": 1771503600000
+  }
+]

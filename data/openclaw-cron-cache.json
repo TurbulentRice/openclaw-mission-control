@@ -1,0 +1,621 @@
+{
+  "cachedAtMs": 1771543140277,
+  "cron": [
+    {
+      "id": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "agentId": "main",
+      "name": "Night Recap (10pm daily)",
+      "enabled": true,
+      "createdAtMs": 1771389720698,
+      "updatedAtMs": 1771470065116,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 22 * * *",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Reminder: Night Recap for Sean (daily 10pm ET).\n\nGoal:\nProvide a sharp recap of the day, especially updates after noon, plus progress on ongoing tasks.\n\nSections:\n1) Day recap (key events/outcomes)\n2) Notable developments after 12pm\n3) Task/project progress\n   - What moved forward\n   - What is pending\n   - Risks/blockers\n4) Carry-forward plan for tomorrow\n   - Top priorities\n   - Suggested first actions\n\nExecution requirements:\n- Use sub-agents when useful to gather updates from different workstreams in parallel.\n- Thorough but digestible: prioritize signal.\n- Mention concrete files/projects touched when relevant.\n\nDelivery:\n- Announce final recap to Sean in this chat."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "discord",
+        "to": "channel:1473547373694423198"
+      },
+      "state": {
+        "nextRunAtMs": 1771556400000,
+        "lastRunAtMs": 1771470000037,
+        "lastStatus": "ok",
+        "lastDurationMs": 65079,
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "1888584a-9321-4bc0-819c-24081e21762e",
+      "agentId": "main",
+      "name": "Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "enabled": true,
+      "createdAtMs": 1771385583650,
+      "updatedAtMs": 1771520723860,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 */12 * * *",
+        "tz": "America/New_York",
+        "staggerMs": 300000
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Reminder: This is a recurring reminder to update Sean's Pikachu ex #276 (Ascended Heroes, English) tracker.\n\nGoal:\n- Refresh /Users/sean/.openclaw/workspace/pokemon-trackers/pikachu-ex-276/data.json\n- Also refresh /Users/sean/.openclaw/workspace/pokemon-trackers/pikachu-ex-276/data.js as: window.TRACKER_DATA = <same JSON>;\n- Improve and expand /Users/sean/.openclaw/workspace/pokemon-trackers/pikachu-ex-276/index.html over time\n\nWhat to do each run:\n1) Re-fetch latest data from:\n   - https://www.pricecharting.com/game/pokemon-ascended-heroes/pikachu-ex-276\n   - https://www.pricecharting.com/game/pokemon-ascended-heroes/pikachu-ex-277\n   - https://www.pricecharting.com/game/pokemon-ascended-heroes/mega-froslass-ex-275\n   - PSA 10 reference listing: https://www.ebay.com/itm/117033623984\n2) Extract/refresh:\n   - Ungraded/graded estimates (incl. PSA10)\n   - Recent raw sale rows (date/source/title/price/url)\n   - PSA population stats (PSA10 pop and total pop if visible)\n   - Raw-vs-graded spread metrics (median raw, PSA10/raw multiple)\n   - Comparable card snapshot metrics\n3) Update dashboard visuals and add useful stats/charts when possible.\n4) Keep page readable and visual-forward (cards, KPI tiles, charts, links, notes).\n5) If parsing fails, keep existing data and append a note in data.json notes about the failure and timestamp.\n\nOutput:\n- Save files in place and summarize what changed in your completion message."
+      },
+      "delivery": {
+        "mode": "announce"
+      },
+      "state": {
+        "nextRunAtMs": 1771563838289,
+        "lastRunAtMs": 1771520638300,
+        "lastStatus": "error",
+        "lastDurationMs": 85560,
+        "consecutiveErrors": 5,
+        "lastError": "cron announce delivery failed"
+      }
+    },
+    {
+      "id": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "agentId": "main",
+      "name": "Morning Bell (8am daily)",
+      "enabled": true,
+      "createdAtMs": 1771389720664,
+      "updatedAtMs": 1771506112321,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 8 * * *",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Reminder: Morning Bell report for Sean (daily 8am ET).\n\nStyle goals:\n- Friendly, motivating, digestible, high-signal.\n- Do NOT be fluffy. Distill complexity without dumbing it down.\n- Learn from Sean’s preferences over time and improve format each day.\n\nMission:\nCreate a high-quality morning briefing that helps Sean start the day well.\n\nSections (in order):\n1) Today at a glance (3-6 bullets)\n2) Calendar summary (Apple Calendar preferred; Google Calendar fallback)\n   - Events today with times + short context\n   - Upcoming reminders/important items for next 48 hours\n   - Flag conflicts, tight transitions, commute/travel constraints if inferable\n3) Active workstreams / status updates\n   - What we were working on recently\n   - Progress, blockers, and what changed since last report\n4) Suggested actions (3-7 practical suggestions)\n   - Include actions Sean can do, plus actions you can do proactively if requested\n5) Optional “nice-to-have” (short)\n   - One thoughtful suggestion or optimization for the day\n\nExecution requirements:\n- Use sub-agents heavily for research/synthesis when useful; parallelize work and merge results.\n- Spend enough time for a thorough report.\n- If calendar access is missing, clearly report what is needed once, then continue with everything else.\n- Keep output scannable with headers + bullets.\n\nDelivery:\n- Announce the final report to Sean in this chat."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "discord",
+        "to": "channel:1473547371207065672"
+      },
+      "state": {
+        "nextRunAtMs": 1771592400000,
+        "lastRunAtMs": 1771506000027,
+        "lastStatus": "ok",
+        "lastDurationMs": 112294,
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "agentId": "main",
+      "name": "Noon Intelligence Digest (Mon-Fri 12pm)",
+      "enabled": true,
+      "createdAtMs": 1771389720682,
+      "updatedAtMs": 1771520555330,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 12 * * 1-5",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Reminder: Noon Intelligence Digest for Sean (weekdays 12pm ET).\n\nGoal:\nDeliver a concise-but-thorough news + ideas brief that is current, insightful, and relevant.\n\nTopic priorities:\n- General breaking news\n- Tech, AI, programming\n- Finance, crypto, politics\n- Pokemon\n- Photography, music, guitar\n- Video games, movies\n\nOutput format:\n1) Top 10 highlights (one-line each)\n2) Deep dives (5-8 items)\n   - Why it matters\n   - Key facts and uncertainty level\n   - Potential implications/opinions (brief)\n3) Opportunities / actions\n   - 3-6 actionable ideas for Sean\n4) Watchlist\n   - Emerging stories to monitor over next 24-72h\n\nExecution requirements:\n- Use multiple sub-agents in parallel for different topic clusters and merge.\n- Prioritize credible sources and recency.\n- Distill complexity without oversimplification.\n- Avoid clickbait and low-value noise.\n\nDelivery:\n- Announce final digest to Sean in this chat."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "discord",
+        "to": "channel:1473547372540727421"
+      },
+      "state": {
+        "nextRunAtMs": 1771606800000,
+        "lastRunAtMs": 1771520400019,
+        "lastStatus": "error",
+        "lastDurationMs": 155311,
+        "consecutiveErrors": 1,
+        "lastError": "cron announce delivery failed"
+      }
+    },
+    {
+      "id": "afe38496-f06f-4265-8119-2894a95e0038",
+      "agentId": "main",
+      "name": "Weekly Format Tuning (Sunday 7pm)",
+      "enabled": true,
+      "createdAtMs": 1771389999579,
+      "updatedAtMs": 1771391482913,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 19 * * 0",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Reminder: Weekly format tuning pass for Sean’s scheduled reports.\n\nGoal:\nImprove report quality/style based on the last week of Morning Bell, Noon Intelligence Digest, and Night Recap outputs.\n\nTasks:\n1) Review recent report outputs and identify what was strong vs weak:\n   - clarity, signal-to-noise, digestibility, actionability, tone fit\n2) Produce concrete tuning recommendations:\n   - section order, length, density, bullets vs paragraphs, recurring sections to add/remove\n3) Apply minor safe tuning updates directly when clearly beneficial.\n4) If a major change is uncertain, propose 2-3 options and ask Sean for preference.\n5) Track a short changelog of tuning decisions so style evolves intentionally.\n\nExecution requirements:\n- Use sub-agents where useful for critique + synthesis.\n- Keep recommendations practical and specific.\n\nDelivery:\n- Announce weekly tuning summary to Sean in Discord."
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "discord",
+        "to": "channel:1473547374382158001"
+      },
+      "state": {
+        "nextRunAtMs": 1771804800000
+      }
+    }
+  ],
+  "cronEvents": [
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771390800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-18T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771419600000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-18T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771434000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-18T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1771434000000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-18T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771470000000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-19T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771477200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-19T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771506000000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-19T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771520400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-19T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1771520400000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-19T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771556400000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-20T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771563600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-20T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771592400000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-20T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771606800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-20T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1771606800000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-20T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771642800000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-21T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771650000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-21T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771678800000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-21T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771693200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-21T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771729200000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-22T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771736400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-22T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771765200000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-22T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771779600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-22T17:00:00.000Z"
+    },
+    {
+      "id": "cron:afe38496-f06f-4265-8119-2894a95e0038:1771804800000",
+      "cronId": "afe38496-f06f-4265-8119-2894a95e0038",
+      "title": "🦞 Weekly Format Tuning (Sunday 7pm)",
+      "start": "2026-02-23T00:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771815600000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-23T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771822800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-23T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771851600000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-23T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771866000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-23T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1771866000000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-23T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771902000000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-24T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771909200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-24T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1771938000000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-24T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771952400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-24T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1771952400000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-24T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1771988400000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-25T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1771995600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-25T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772024400000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-25T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772038800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-25T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772038800000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-25T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772074800000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-26T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772082000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-26T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772110800000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-26T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772125200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-26T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772125200000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-26T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772161200000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-27T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772168400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-27T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772197200000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-27T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772211600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-27T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772211600000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-02-27T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772247600000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-02-28T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772254800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-28T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772283600000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-02-28T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772298000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-02-28T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772334000000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-03-01T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772341200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-01T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772370000000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-03-01T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772384400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-01T17:00:00.000Z"
+    },
+    {
+      "id": "cron:afe38496-f06f-4265-8119-2894a95e0038:1772409600000",
+      "cronId": "afe38496-f06f-4265-8119-2894a95e0038",
+      "title": "🦞 Weekly Format Tuning (Sunday 7pm)",
+      "start": "2026-03-02T00:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772420400000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-03-02T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772427600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-02T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772456400000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-03-02T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772470800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-02T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772470800000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-03-02T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772506800000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-03-03T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772514000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-03T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772542800000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-03-03T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772557200000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-03T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772557200000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-03-03T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772593200000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-03-04T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772600400000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-04T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772629200000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-03-04T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772643600000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-04T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772643600000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-03-04T17:00:00.000Z"
+    },
+    {
+      "id": "cron:d6031272-04fc-42d1-aa75-1b58ead7ec4b:1772679600000",
+      "cronId": "d6031272-04fc-42d1-aa75-1b58ead7ec4b",
+      "title": "🦞 Night Recap (10pm daily)",
+      "start": "2026-03-05T03:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772686800000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-05T05:00:00.000Z"
+    },
+    {
+      "id": "cron:71041bbc-413c-4ee2-ac8e-011256571236:1772715600000",
+      "cronId": "71041bbc-413c-4ee2-ac8e-011256571236",
+      "title": "🦞 Morning Bell (8am daily)",
+      "start": "2026-03-05T13:00:00.000Z"
+    },
+    {
+      "id": "cron:1888584a-9321-4bc0-819c-24081e21762e:1772730000000",
+      "cronId": "1888584a-9321-4bc0-819c-24081e21762e",
+      "title": "🦞 Track Pikachu ex #276 (Ascended Heroes) dashboard",
+      "start": "2026-03-05T17:00:00.000Z"
+    },
+    {
+      "id": "cron:aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd:1772730000000",
+      "cronId": "aec9d28c-53b3-4cb2-bf87-ffc94c53b2bd",
+      "title": "🦞 Noon Intelligence Digest (Mon-Fri 12pm)",
+      "start": "2026-03-05T17:00:00.000Z"
+    }
+  ]
+}

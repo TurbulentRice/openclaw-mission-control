@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OpenClaw Mission Control (Foundation)
 
-## Getting Started
+Local-first control-plane overlay for OpenClaw.
 
-First, run the development server:
+This project is intentionally **not** a replacement for the native OpenClaw dashboard. It is a proactive operations layer for organization, insights, and workflow management.
+
+## Guiding Architecture
+
+- **OpenClaw API** = source of truth for OpenClaw-native entities (sessions, cron jobs, status, routing, etc.)
+- **Convex** = source of truth for Mission Control app-domain entities (task items, notes, event annotations, decision logs)
+- **Auth model (v1)** = localhost-only access guard
+
+## Stack
+
+- Next.js (App Router, TypeScript, Tailwind)
+- Convex (schema + function stubs for app-domain data)
+- Local middleware guard for localhost-only access
+
+## Current Foundation
+
+- Delightful shell UI scaffold (sidebar + overview cards)
+- OpenClaw typed client + API proxy route (`/api/openclaw/status`)
+- Sidebar-routed views: Overview, Timeline, Calendar, Tasks
+- Live task board with owner + status workflow (Operator/Agent)
+- Calendar module with real calendar views (month/week/day/list via FullCalendar)
+- Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads
+- Parsed cron occurrences rendered across history (from `createdAtMs`) and upcoming horizon
+- Calendar item create/edit/delete UI for mission-control scheduled tasks (click-away modals)
+- Cron event details modal (timing, schedule, raw job payload)
+- Drag-and-drop interactions:
+  - move task events in calendar to reschedule
+  - drag tasks between board columns to change status
+- Local task API endpoints:
+  - `GET /api/tasks`
+  - `POST /api/tasks`
+  - `PATCH /api/tasks/:id`
+- Local calendar API endpoint:
+  - `GET /api/calendar`
+- Convex schema (next-layer app domain):
+  - `taskItems`
+  - `missionEvents`
+- Convex function stubs:
+  - `tasks.list`, `tasks.create`
+  - `events.recent`, `events.append`
+- Docs for system boundaries and extension strategy
+
+## Quick Start
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env.local`:
 
-## Learn More
+```env
+NEXT_PUBLIC_APP_NAME=Mission Control
+OPENCLAW_BASE_URL=http://127.0.0.1:18789
+OPENCLAW_TOKEN=your_gateway_token_here
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Convex Setup (when ready)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> Convex auth/deployment is intentionally left explicit for operator control.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx convex dev
+```
 
-## Deploy on Vercel
+This generates `convex/_generated/*` and starts Convex dev workflow.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` – start Next.js dev server
+- `npm run build` – production build
+- `npm run lint` – lint
+
+## Design Intent
+
+Mission Control should feel:
+- calm under pressure,
+- high-signal,
+- operationally trustworthy,
+- easy to extend without architecture rewrites.
+
+## Next Feature Prompts
+
+Good first slices (for follow-up prompts):
+1. real-time event timeline and alerting semantics
+2. cron mission planner with objective metadata
+3. task extraction from digest outputs
+4. intervention console (pause/retry/reroute) with audit logs
