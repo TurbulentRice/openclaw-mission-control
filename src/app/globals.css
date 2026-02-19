@@ -92,6 +92,10 @@ summary,
   border-radius: 8px;
 }
 
+.fc .fc-event-main {
+  padding: 2px 3px;
+}
+
 .fc .fc-event-title,
 .fc .fc-daygrid-event .fc-event-title {
   overflow: hidden;
