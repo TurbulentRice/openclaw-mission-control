@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Radar, CalendarClock, Activity, ListTodo } from "lucide-react";
+import { Radar, CalendarClock, Activity, ListTodo, SlidersHorizontal } from "lucide-react";
 
 const navItems = [
   { label: "Overview", href: "/", icon: Radar },
   { label: "Timeline", href: "/timeline", icon: Activity },
   { label: "Calendar", href: "/calendar", icon: CalendarClock },
   { label: "Tasks", href: "/tasks", icon: ListTodo },
+  { label: "Settings", href: "/settings", icon: SlidersHorizontal },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

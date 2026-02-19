@@ -58,6 +58,7 @@ export function CalendarBoard() {
   const [scheduledFor, setScheduledFor] = useState("");
   const [durationMin, setDurationMin] = useState(30);
   const [notes, setNotes] = useState("");
+  const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function load() {
     const res = await fetch("/api/calendar", { cache: "no-store" });
@@ -73,6 +74,17 @@ export function CalendarBoard() {
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void load();
+    void (async () => {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const json = await res.json();
+      if (json.ok) {
+        setNicknames({
+          operator: json.settings.operatorNickname,
+          agent: json.settings.agentNickname,
+        });
+      }
+    })();
+
     const i = setInterval(() => void load(), 15000);
     return () => clearInterval(i);
   }, []);
@@ -259,8 +271,8 @@ export function CalendarBoard() {
           <input type="datetime-local" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm" />
           <div className="grid grid-cols-3 gap-2">
             <select value={owner} onChange={(e) => setOwner(e.target.value as "operator" | "agent")} className="rounded border border-white/15 bg-black/20 px-2 py-2 text-sm">
-              <option value="agent">Agent</option>
-              <option value="operator">Operator</option>
+              <option value="agent">{nicknames.agent}</option>
+              <option value="operator">{nicknames.operator}</option>
             </select>
             <select value={status} onChange={(e) => setStatus(e.target.value as CalendarStatus)} className="rounded border border-white/15 bg-black/20 px-2 py-2 text-sm">
               {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -279,8 +291,8 @@ export function CalendarBoard() {
             <input type="datetime-local" value={new Date(selectedTask.scheduledFor).toISOString().slice(0, 16)} onChange={(e) => setSelectedTask({ ...selectedTask, scheduledFor: new Date(e.target.value).toISOString() })} className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm" />
             <div className="grid grid-cols-2 gap-2">
               <select value={selectedTask.owner} onChange={(e) => setSelectedTask({ ...selectedTask, owner: e.target.value as "operator" | "agent" })} className="rounded border border-white/15 bg-black/20 px-2 py-2 text-sm">
-                <option value="agent">Agent</option>
-                <option value="operator">Operator</option>
+                <option value="agent">{nicknames.agent}</option>
+                <option value="operator">{nicknames.operator}</option>
               </select>
               <select value={selectedTask.status} onChange={(e) => setSelectedTask({ ...selectedTask, status: e.target.value as CalendarStatus })} className="rounded border border-white/15 bg-black/20 px-2 py-2 text-sm">
                 {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}

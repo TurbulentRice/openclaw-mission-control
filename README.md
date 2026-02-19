@@ -20,7 +20,8 @@ This project is intentionally **not** a replacement for the native OpenClaw dash
 
 - Delightful shell UI scaffold (sidebar + overview cards)
 - OpenClaw typed client + API proxy route (`/api/openclaw/status`)
-- Sidebar-routed views: Overview, Timeline, Calendar, Tasks
+- Sidebar-routed views: Overview, Timeline, Calendar, Tasks, Settings
+- App-wide Settings page for operator/agent nicknames
 - Live task board with owner + status workflow (Operator/Agent)
 - Calendar module with real calendar views (month/week/day/list via FullCalendar)
 - Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads

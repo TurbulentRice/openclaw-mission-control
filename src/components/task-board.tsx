@@ -13,10 +13,7 @@ const statusLabel: Record<TaskStatus, string> = {
   done: "Done",
 };
 
-const ownerLabel: Record<TaskOwner, string> = {
-  operator: "Operator",
-  agent: "Agent",
-};
+// owner labels come from Settings API
 
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null;
@@ -42,6 +39,7 @@ export function TaskBoard() {
 
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function loadTasks() {
     const res = await fetch("/api/tasks", { cache: "no-store" });
@@ -53,6 +51,17 @@ export function TaskBoard() {
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void loadTasks();
+    void (async () => {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const json = await res.json();
+      if (json.ok) {
+        setNicknames({
+          operator: json.settings.operatorNickname,
+          agent: json.settings.agentNickname,
+        });
+      }
+    })();
+
     const i = setInterval(() => void loadTasks(), 3000);
     return () => clearInterval(i);
   }, []);
@@ -122,8 +131,8 @@ export function TaskBoard() {
             onChange={(e) => setOwner(e.target.value as TaskOwner)}
             className="rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm"
           >
-            <option value="agent">Agent</option>
-            <option value="operator">Operator</option>
+            <option value="agent">{nicknames.agent}</option>
+            <option value="operator">{nicknames.operator}</option>
           </select>
           <button
             type="button"
@@ -170,7 +179,7 @@ export function TaskBoard() {
                     <p className="text-sm font-medium text-slate-100">{task.title}</p>
                     {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
                     <p className="mt-2 text-[10px] text-slate-500">
-                      Assigned: {ownerLabel[task.owner]} · Updated {new Date(task.updatedAt).toLocaleTimeString()}
+                      Assigned: {task.owner === "agent" ? nicknames.agent : nicknames.operator} · Updated {new Date(task.updatedAt).toLocaleTimeString()}
                     </p>
                   </article>
                 ))}
@@ -205,8 +214,8 @@ export function TaskBoard() {
                 onChange={(e) => setSelectedTask({ ...selectedTask, owner: e.target.value as TaskOwner })}
                 className="rounded border border-white/15 bg-black/20 px-2 py-2 text-sm"
               >
-                <option value="agent">Agent</option>
-                <option value="operator">Operator</option>
+                <option value="agent">{nicknames.agent}</option>
+                <option value="operator">{nicknames.operator}</option>
               </select>
               <select
                 value={selectedTask.status}
