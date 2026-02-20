@@ -19,7 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#102640_0%,_#0b1220_45%,_#070b14_100%)] text-slate-100">
-      <div className="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
         <aside className="self-start rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto">
           <div className="mb-6">
             <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">OpenClaw</p>
