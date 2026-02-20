@@ -55,6 +55,7 @@ export function TaskBoard() {
   const [newComment, setNewComment] = useState("");
   const [watchNotice, setWatchNotice] = useState<TaskItem[]>([]);
   const [activityLog, setActivityLog] = useState<Array<{ id: string; text: string; at: number }>>([]);
+  const [runnerBusy, setRunnerBusy] = useState(false);
   const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function loadTasks() {
@@ -117,6 +118,29 @@ export function TaskBoard() {
     }
   }
 
+  async function tickRunner() {
+    if (runnerBusy) return;
+    setRunnerBusy(true);
+    try {
+      const res = await fetch("/api/tasks/runner/tick", { method: "POST" });
+      const json = await res.json();
+      const processed = (json.processed as Array<{ id: string; decision: string; summary: string }>) ?? [];
+      if (processed.length > 0) {
+        setActivityLog((prev) => [
+          ...processed.map((p) => ({
+            id: `${p.id}-${p.decision}-${Date.now()}`,
+            text: `Runner: ${p.summary} (${p.decision})`,
+            at: Date.now(),
+          })),
+          ...prev,
+        ].slice(0, 10));
+        await loadTasks();
+      }
+    } finally {
+      setRunnerBusy(false);
+    }
+  }
+
   useEffect(() => {
     void loadTasks();
     void (async () => {
@@ -134,9 +158,11 @@ export function TaskBoard() {
 
     const i = setInterval(() => void loadTasks(), 3000);
     const w = setInterval(() => void pollWatchService(), 5000);
+    const r = setInterval(() => void tickRunner(), 8000);
     return () => {
       clearInterval(i);
       clearInterval(w);
+      clearInterval(r);
     };
   }, []);
 
@@ -196,7 +222,16 @@ export function TaskBoard() {
   return (
     <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
       <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
-        <h3 className="text-xl font-semibold">Tasks</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xl font-semibold">Tasks</h3>
+          <button
+            type="button"
+            onClick={() => void tickRunner()}
+            className="rounded border border-cyan-300/40 bg-cyan-400/15 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-400/25"
+          >
+            {runnerBusy ? "Runner working..." : "Run now"}
+          </button>
+        </div>
         <p className="mt-1 text-sm text-slate-300">Shared mission board for {nicknames.operator} + {nicknames.agent}. Drag between columns or click a task for full details.</p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
