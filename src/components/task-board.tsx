@@ -270,12 +270,25 @@ export function TaskBoard() {
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <h4 className="mb-2 text-sm font-semibold text-slate-100">Comments</h4>
-              <div className="space-y-2">
+              <div className="max-h-72 space-y-2 overflow-auto pr-1">
                 {(selectedTask.comments ?? []).map((comment, idx) => (
                   <div key={comment.id} className="rounded border border-white/10 bg-black/25 p-2">
                     <div className="mb-1 flex items-center justify-between text-[10px] text-slate-400">
                       <span>{comment.author === "agent" ? nicknames.agent : nicknames.operator}</span>
-                      <span>{new Date(comment.updatedAt).toLocaleString()}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{new Date(comment.updatedAt).toLocaleString()}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = [...(selectedTask.comments ?? [])];
+                            next.splice(idx, 1);
+                            setSelectedTask({ ...selectedTask, comments: next });
+                          }}
+                          className="rounded border border-rose-300/35 bg-rose-500/15 px-1.5 py-0.5 text-[10px] text-rose-200 hover:bg-rose-500/25"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                     <textarea
                       value={comment.body}
@@ -284,7 +297,7 @@ export function TaskBoard() {
                         next[idx] = { ...next[idx], body: e.target.value, updatedAt: Date.now() };
                         setSelectedTask({ ...selectedTask, comments: next });
                       }}
-                      rows={3}
+                      rows={Math.max(3, Math.min(12, (comment.body.match(/\n/g)?.length ?? 0) + 2))}
                       className="w-full rounded border border-white/15 bg-black/20 px-2 py-1 text-xs"
                     />
                   </div>
