@@ -98,7 +98,7 @@ export default function MemoryPage() {
                 </div>
 
                 <div className="max-h-80 overflow-auto rounded-lg border border-white/10 bg-black/20 p-3">
-                  <article className="prose prose-invert prose-sm max-w-none prose-headings:mb-2 prose-p:my-2 prose-pre:bg-black/40 prose-code:text-cyan-200">
+                  <article className="memory-markdown">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
                   </article>
                 </div>
