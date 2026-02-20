@@ -60,6 +60,7 @@ export function TaskBoard() {
       const normalized = (json.tasks as TaskItem[]).map((t) => ({
         ...t,
         status: t.status === ("next" as TaskStatus) ? ("selected" as TaskStatus) : t.status,
+        active: t.active ?? false,
         comments: t.comments ?? [],
       }));
       setTasks(normalized);
@@ -132,6 +133,7 @@ export function TaskBoard() {
       description: selectedTask.description,
       owner: selectedTask.owner,
       status: selectedTask.status,
+      active: selectedTask.active ?? false,
       comments: selectedTask.comments ?? [],
     });
     setModalOpen(false);
@@ -205,7 +207,14 @@ export function TaskBoard() {
                     className="cursor-pointer rounded-lg border border-white/10 bg-[#111a2d] p-2 hover:border-cyan-300/40"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-100">{task.title}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-100">{task.title}</p>
+                        {task.active ? (
+                          <span className="mt-1 inline-flex rounded border border-emerald-300/45 bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-200">
+                            Active
+                          </span>
+                        ) : null}
+                      </div>
                       {(task.comments?.length ?? 0) > 0 ? (
                         <span className="rounded border border-violet-300/35 bg-violet-400/10 px-1.5 py-0.5 text-[10px] text-violet-200">
                           {(task.comments?.length ?? 0)}
@@ -267,6 +276,15 @@ export function TaskBoard() {
                 ))}
               </select>
             </div>
+
+            <label className="flex items-center gap-2 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-200">
+              <input
+                type="checkbox"
+                checked={Boolean(selectedTask.active)}
+                onChange={(e) => setSelectedTask({ ...selectedTask, active: e.target.checked })}
+              />
+              Active development
+            </label>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <h4 className="mb-2 text-sm font-semibold text-slate-100">Comments</h4>

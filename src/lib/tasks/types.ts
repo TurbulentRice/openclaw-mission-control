@@ -15,6 +15,7 @@ export interface TaskItem {
   description?: string;
   status: TaskStatus;
   owner: TaskOwner;
+  active?: boolean;
   comments?: TaskComment[];
   createdAt: number;
   updatedAt: number;
@@ -32,5 +33,6 @@ export interface UpdateTaskInput {
   description?: string;
   owner?: TaskOwner;
   status?: TaskStatus;
+  active?: boolean;
   comments?: TaskComment[];
 }
