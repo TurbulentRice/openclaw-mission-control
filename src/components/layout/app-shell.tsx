@@ -19,14 +19,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#102640_0%,_#0b1220_45%,_#070b14_100%)] text-slate-100">
-      <div className="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[240px_1fr]">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[280px_1fr]">
         <aside className="self-start rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto">
           <div className="mb-6">
-            <div className="mb-1 flex items-center gap-2">
-              <Image src="/icon/claw-mc-32.png" alt="Mission Control icon" width={24} height={24} className="rounded" />
-              <h1 className="text-2xl font-semibold">Mission Control</h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">OpenClaw</p>
+            <div className="mt-1 flex items-center gap-2 whitespace-nowrap">
+              <Image src="/icon/claw-mc-32.png" alt="Mission Control icon" width={22} height={22} className="rounded" />
+              <h1 className="text-xl font-semibold leading-none">Mission Control</h1>
             </div>
-            <p className="text-xs text-cyan-300/80">Operator command deck</p>
           </div>
           <nav className="space-y-2">
             {navItems.map(({ label, href, icon: Icon }) => {
