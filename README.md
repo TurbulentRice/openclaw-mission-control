@@ -20,8 +20,9 @@ This project is intentionally **not** a replacement for the native OpenClaw dash
 
 - Delightful shell UI scaffold (sidebar + overview cards)
 - OpenClaw typed client + API proxy route (`/api/openclaw/status`)
-- Sidebar-routed views: Overview, Timeline, Calendar, Tasks, Settings
+- Sidebar-routed views: Overview, Timeline, Calendar, Tasks, Memory, Settings
 - App-wide Settings page for operator/agent nicknames
+- Memory screen for browsing/searching `MEMORY.md` + `memory/*.md`
 - Live task board with owner + status workflow (Operator/Agent)
 - Calendar module with real calendar views (month/week/day/list via FullCalendar)
 - Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads
@@ -63,6 +64,7 @@ Create `.env.local`:
 NEXT_PUBLIC_APP_NAME=Mission Control
 OPENCLAW_BASE_URL=http://127.0.0.1:18789
 OPENCLAW_TOKEN=your_gateway_token_here
+OPENCLAW_WORKSPACE_DIR=~/.openclaw/workspace
 ```
 
 ## Convex Setup (when ready)

@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Radar, CalendarClock, Activity, ListTodo, SlidersHorizontal } from "lucide-react";
+import { Radar, CalendarClock, Activity, ListTodo, SlidersHorizontal, BookText } from "lucide-react";
 
 const navItems = [
   { label: "Overview", href: "/", icon: Radar },
   { label: "Timeline", href: "/timeline", icon: Activity },
   { label: "Calendar", href: "/calendar", icon: CalendarClock },
   { label: "Tasks", href: "/tasks", icon: ListTodo },
+  { label: "Memory", href: "/memory", icon: BookText },
   { label: "Settings", href: "/settings", icon: SlidersHorizontal },
 ];
 
