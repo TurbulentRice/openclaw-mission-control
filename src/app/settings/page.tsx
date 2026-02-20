@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/app-shell";
 export default function SettingsPage() {
   const [operatorNickname, setOperatorNickname] = useState("Operator");
   const [agentNickname, setAgentNickname] = useState("Agent");
+  const [openclawWorkspaceDir, setOpenclawWorkspaceDir] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function SettingsPage() {
       if (json.ok) {
         setOperatorNickname(json.settings.operatorNickname);
         setAgentNickname(json.settings.agentNickname);
+        setOpenclawWorkspaceDir(json.settings.openclawWorkspaceDir ?? "");
       }
     })();
   }, []);
@@ -23,12 +25,13 @@ export default function SettingsPage() {
     const res = await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ operatorNickname, agentNickname }),
+      body: JSON.stringify({ operatorNickname, agentNickname, openclawWorkspaceDir }),
     });
     const json = await res.json();
     if (json.ok) {
       setOperatorNickname(json.settings.operatorNickname);
       setAgentNickname(json.settings.agentNickname);
+      setOpenclawWorkspaceDir(json.settings.openclawWorkspaceDir ?? "");
       setSavedAt(new Date().toLocaleTimeString());
     }
   }
@@ -62,6 +65,17 @@ export default function SettingsPage() {
               />
             </label>
           </div>
+
+          <label className="mt-3 block text-sm">
+            <span className="mb-1 block text-slate-300">OpenClaw workspace directory</span>
+            <input
+              value={openclawWorkspaceDir}
+              onChange={(e) => setOpenclawWorkspaceDir(e.target.value)}
+              className="w-full rounded border border-white/15 bg-black/20 px-3 py-2"
+              placeholder="~/.openclaw/workspace"
+            />
+            <span className="mt-1 block text-xs text-slate-400">Used by Memory screen and other local workspace features.</span>
+          </label>
 
           <div className="mt-4 flex items-center gap-3">
             <button

@@ -9,9 +9,19 @@ export interface MemoryDoc {
   content: string;
 }
 
-function resolveWorkspaceRoot() {
+async function resolveWorkspaceRoot() {
   const configured = process.env.OPENCLAW_WORKSPACE_DIR;
   if (configured?.trim()) return configured;
+
+  try {
+    const settingsPath = path.join(process.cwd(), "data", "settings.json");
+    const raw = await fs.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(raw) as { openclawWorkspaceDir?: string };
+    if (parsed.openclawWorkspaceDir?.trim()) return parsed.openclawWorkspaceDir.trim();
+  } catch {
+    // ignore and fallback
+  }
+
   const home = process.env.HOME || process.env.USERPROFILE || "";
   return path.join(home, ".openclaw", "workspace");
 }
@@ -28,7 +38,7 @@ function normalize(text: string) {
 }
 
 export async function listMemoryDocs(query?: string): Promise<MemoryDoc[]> {
-  const root = resolveWorkspaceRoot();
+  const root = await resolveWorkspaceRoot();
   const memoryDir = path.join(root, "memory");
 
   const files: string[] = [];
