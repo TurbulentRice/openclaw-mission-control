@@ -24,8 +24,6 @@ This project is intentionally **not** a replacement for the native OpenClaw dash
 - App-wide Settings page for operator/agent nicknames and workspace path
 - Memory screen for browsing/searching `MEMORY.md` + `memory/*.md` with markdown rendering
 - Live task board with owner + status workflow (Operator/Agent)
-- Agent task watch polling endpoint (`GET /api/tasks/watch`) for newly-selected agent tasks
-- Autonomous Doing runner tick endpoint (`POST /api/tasks/runner/tick`) with done/blocked transitions
 - Task comments in task details modal (add/edit) + comment count badges on cards
 - Calendar module with real calendar views (month/week/day/list via FullCalendar)
 - Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads

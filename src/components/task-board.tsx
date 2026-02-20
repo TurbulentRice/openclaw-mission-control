@@ -1,6 +1,4 @@
 "use client";
-/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
-
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { TaskComment, TaskItem, TaskOwner, TaskStatus } from "@/lib/tasks/types";
 
@@ -53,9 +51,6 @@ export function TaskBoard() {
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const [watchNotice, setWatchNotice] = useState<TaskItem[]>([]);
-  const [activityLog, setActivityLog] = useState<Array<{ id: string; text: string; at: number }>>([]);
-  const [runnerBusy, setRunnerBusy] = useState(false);
   const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function loadTasks() {
@@ -72,75 +67,7 @@ export function TaskBoard() {
     setLoading(false);
   }
 
-  async function startTaskWithPlan(task: TaskItem, autoTriggered = false) {
-    const plan = `Implementation plan:\n1) Clarify acceptance criteria\n2) Break work into sub-steps/sub-agents if needed\n3) Implement incrementally\n4) Validate and report outcome`;
-    const ordinal = (task.comments?.length ?? 0) + 1;
-    const marker = task.updatedAt + ordinal;
-    const withComment = appendCommentDraft(
-      { ...task, status: "doing" },
-      {
-        id: `${task.id}-plan-${ordinal}`,
-        body: plan,
-        author: "agent",
-        createdAt: marker,
-        updatedAt: marker,
-      }
-    );
-    await patchTask(task.id, {
-      status: "doing",
-      comments: withComment.comments,
-    });
-
-    setActivityLog((prev) => [
-      {
-        id: `${task.id}-${marker}`,
-        text: `${autoTriggered ? "Auto" : "Manual"}: moved "${task.title}" to Doing and added plan comment`,
-        at: marker,
-      },
-      ...prev,
-    ].slice(0, 8));
-
-    setWatchNotice((prev) => prev.filter((t) => t.id !== task.id));
-  }
-
-  async function pollWatchService() {
-    const res = await fetch("/api/tasks/watch", { cache: "no-store" });
-    const json = await res.json();
-    if (json.ok) {
-      const newly = (json.newlySelected as TaskItem[]) ?? [];
-      setWatchNotice(newly);
-
-      if (newly.length > 0) {
-        for (const task of newly) {
-          await startTaskWithPlan(task, true);
-        }
-      }
-    }
-  }
-
-  async function tickRunner() {
-    if (runnerBusy) return;
-    setRunnerBusy(true);
-    try {
-      const res = await fetch("/api/tasks/runner/tick", { method: "POST" });
-      const json = await res.json();
-      const processed = (json.processed as Array<{ id: string; decision: string; summary: string }>) ?? [];
-      if (processed.length > 0) {
-        setActivityLog((prev) => [
-          ...processed.map((p) => ({
-            id: `${p.id}-${p.decision}-${Date.now()}`,
-            text: `Runner: ${p.summary} (${p.decision})`,
-            at: Date.now(),
-          })),
-          ...prev,
-        ].slice(0, 10));
-        await loadTasks();
-      }
-    } finally {
-      setRunnerBusy(false);
-    }
-  }
-
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void loadTasks();
     void (async () => {
@@ -154,17 +81,10 @@ export function TaskBoard() {
       }
     })();
 
-    void pollWatchService();
-
     const i = setInterval(() => void loadTasks(), 3000);
-    const w = setInterval(() => void pollWatchService(), 5000);
-    const r = setInterval(() => void tickRunner(), 8000);
-    return () => {
-      clearInterval(i);
-      clearInterval(w);
-      clearInterval(r);
-    };
+    return () => clearInterval(i);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const grouped = useMemo(() => {
     return statuses.reduce((acc, status) => {
@@ -222,16 +142,7 @@ export function TaskBoard() {
   return (
     <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
       <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xl font-semibold">Tasks</h3>
-          <button
-            type="button"
-            onClick={() => void tickRunner()}
-            className="rounded border border-cyan-300/40 bg-cyan-400/15 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-400/25"
-          >
-            {runnerBusy ? "Runner working..." : "Run now"}
-          </button>
-        </div>
+        <h3 className="text-xl font-semibold">Tasks</h3>
         <p className="mt-1 text-sm text-slate-300">Shared mission board for {nicknames.operator} + {nicknames.agent}. Drag between columns or click a task for full details.</p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -258,36 +169,7 @@ export function TaskBoard() {
           </button>
         </div>
 
-        {watchNotice.length > 0 ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-cyan-300/30 bg-cyan-400/10 p-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-cyan-200">Agent attention needed</p>
-            {watchNotice.map((task) => (
-              <div key={task.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="text-slate-100">{task.title}</span>
-                <button
-                  type="button"
-                  onClick={() => void startTaskWithPlan(task)}
-                  className="rounded border border-cyan-300/40 bg-cyan-400/15 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-400/25"
-                >
-                  Move to Doing + seed plan
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {activityLog.length > 0 ? (
-          <div className="mt-3 rounded-lg border border-emerald-300/25 bg-emerald-400/10 p-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-emerald-200">Agent activity</p>
-            <div className="mt-1 space-y-1">
-              {activityLog.map((item) => (
-                <p key={item.id} className="text-xs text-slate-200">
-                  {new Date(item.at).toLocaleTimeString()} · {item.text}
-                </p>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        
       </article>
 
       <article className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-3">
