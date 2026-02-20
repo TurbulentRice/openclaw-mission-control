@@ -193,16 +193,14 @@ export function TaskBoard() {
                     }}
                     className="cursor-pointer rounded-lg border border-white/10 bg-[#111a2d] p-2 hover:border-cyan-300/40"
                   >
-                    <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className={`rounded border px-1.5 py-0.5 text-[10px] ${ownerTone(task.owner)}`}>
+                    <p className="text-sm font-medium text-slate-100">{task.title}</p>
+                    {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-slate-500">
+                      <span>Updated {new Date(task.updatedAt).toLocaleTimeString()}</span>
+                      <span className={`rounded border px-1.5 py-0.5 ${ownerTone(task.owner)}`}>
                         {task.owner === "agent" ? nicknames.agent : nicknames.operator}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-slate-100">{task.title}</p>
-                    {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
-                    <p className="mt-2 text-[10px] text-slate-500">
-                      Updated {new Date(task.updatedAt).toLocaleTimeString()}
-                    </p>
                   </article>
                 ))}
 
