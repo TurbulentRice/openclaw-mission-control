@@ -38,7 +38,6 @@ export default function MemoryPage() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    setSearching(true);
     const t = setTimeout(() => {
       void load(query);
     }, 180);
@@ -69,7 +68,10 @@ export default function MemoryPage() {
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setSearching(true);
+                setQuery(e.target.value);
+              }}
               placeholder="Search memories..."
               list="memory-suggestions"
               className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none ring-cyan-300/40 placeholder:text-slate-400 focus:ring"

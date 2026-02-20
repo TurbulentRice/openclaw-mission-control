@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { TaskComment, TaskItem, TaskOwner, TaskStatus } from "@/lib/tasks/types";
@@ -53,6 +54,7 @@ export function TaskBoard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [watchNotice, setWatchNotice] = useState<TaskItem[]>([]);
+  const [activityLog, setActivityLog] = useState<Array<{ id: string; text: string; at: number }>>([]);
   const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function loadTasks() {
@@ -69,15 +71,52 @@ export function TaskBoard() {
     setLoading(false);
   }
 
+  async function startTaskWithPlan(task: TaskItem, autoTriggered = false) {
+    const plan = `Implementation plan:\n1) Clarify acceptance criteria\n2) Break work into sub-steps/sub-agents if needed\n3) Implement incrementally\n4) Validate and report outcome`;
+    const ordinal = (task.comments?.length ?? 0) + 1;
+    const marker = task.updatedAt + ordinal;
+    const withComment = appendCommentDraft(
+      { ...task, status: "doing" },
+      {
+        id: `${task.id}-plan-${ordinal}`,
+        body: plan,
+        author: "agent",
+        createdAt: marker,
+        updatedAt: marker,
+      }
+    );
+    await patchTask(task.id, {
+      status: "doing",
+      comments: withComment.comments,
+    });
+
+    setActivityLog((prev) => [
+      {
+        id: `${task.id}-${marker}`,
+        text: `${autoTriggered ? "Auto" : "Manual"}: moved "${task.title}" to Doing and added plan comment`,
+        at: marker,
+      },
+      ...prev,
+    ].slice(0, 8));
+
+    setWatchNotice((prev) => prev.filter((t) => t.id !== task.id));
+  }
+
   async function pollWatchService() {
     const res = await fetch("/api/tasks/watch", { cache: "no-store" });
     const json = await res.json();
     if (json.ok) {
-      setWatchNotice((json.newlySelected as TaskItem[]) ?? []);
+      const newly = (json.newlySelected as TaskItem[]) ?? [];
+      setWatchNotice(newly);
+
+      if (newly.length > 0) {
+        for (const task of newly) {
+          await startTaskWithPlan(task, true);
+        }
+      }
     }
   }
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void loadTasks();
     void (async () => {
@@ -100,7 +139,6 @@ export function TaskBoard() {
       clearInterval(w);
     };
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const grouped = useMemo(() => {
     return statuses.reduce((acc, status) => {
@@ -153,26 +191,7 @@ export function TaskBoard() {
     setModalOpen(false);
   }
 
-  async function startTaskWithPlan(task: TaskItem) {
-    const plan = `Implementation plan:\n1) Clarify acceptance criteria\n2) Break work into sub-steps/sub-agents if needed\n3) Implement incrementally\n4) Validate and report outcome`;
-    const ordinal = (task.comments?.length ?? 0) + 1;
-    const marker = task.updatedAt + ordinal;
-    const withComment = appendCommentDraft(
-      { ...task, status: "doing" },
-      {
-        id: `${task.id}-plan-${ordinal}`,
-        body: plan,
-        author: "agent",
-        createdAt: marker,
-        updatedAt: marker,
-      }
-    );
-    await patchTask(task.id, {
-      status: "doing",
-      comments: withComment.comments,
-    });
-    setWatchNotice((prev) => prev.filter((t) => t.id !== task.id));
-  }
+  
 
   return (
     <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
@@ -219,6 +238,19 @@ export function TaskBoard() {
                 </button>
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {activityLog.length > 0 ? (
+          <div className="mt-3 rounded-lg border border-emerald-300/25 bg-emerald-400/10 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-emerald-200">Agent activity</p>
+            <div className="mt-1 space-y-1">
+              {activityLog.map((item) => (
+                <p key={item.id} className="text-xs text-slate-200">
+                  {new Date(item.at).toLocaleTimeString()} · {item.text}
+                </p>
+              ))}
+            </div>
           </div>
         ) : null}
       </article>
