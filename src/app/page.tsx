@@ -1,25 +1,40 @@
 import Link from "next/link";
+import { promisify } from "node:util";
+import { execFile } from "node:child_process";
 import { AppShell } from "@/components/layout/app-shell";
 import { KpiCard } from "@/components/ui/kpi-card";
-import { openclawRequest } from "@/lib/openclaw/client";
 import { listTasks } from "@/lib/tasks/store";
 import { listCalendarItems } from "@/lib/calendar/store";
 import { listMemoryDocs } from "@/lib/memory/store";
 
+const execFileAsync = promisify(execFile);
+
+interface HealthJson {
+  ok?: boolean;
+  channels?: Record<string, { configured?: boolean; running?: boolean }>;
+}
+
+async function getGatewayHealth(): Promise<HealthJson | null> {
+  try {
+    const { stdout } = await execFileAsync("openclaw", ["health", "--json"], {
+      timeout: 12000,
+      maxBuffer: 1024 * 1024,
+    });
+    return JSON.parse(stdout) as HealthJson;
+  } catch {
+    return null;
+  }
+}
+
 async function getOverviewData() {
-  const [connected, tasks, calendarItems, memoryDocs] = await Promise.all([
-    (async () => {
-      try {
-        await openclawRequest({ path: "/status" });
-        return true;
-      } catch {
-        return false;
-      }
-    })(),
+  const [health, tasks, calendarItems, memoryDocs] = await Promise.all([
+    getGatewayHealth(),
     listTasks(),
     listCalendarItems(),
     listMemoryDocs(),
   ]);
+
+  const connected = !!health?.ok;
 
   const doingCount = tasks.filter((t) => t.status === "doing").length;
   const blockedCount = tasks.filter((t) => t.status === "blocked").length;
@@ -27,6 +42,7 @@ async function getOverviewData() {
 
   return {
     connected,
+    health,
     tasks,
     calendarItems,
     memoryDocs,
@@ -39,6 +55,7 @@ async function getOverviewData() {
 export default async function Home() {
   const {
     connected,
+    health,
     tasks,
     calendarItems,
     memoryDocs,
@@ -47,7 +64,10 @@ export default async function Home() {
     selectedCount,
   } = await getOverviewData();
 
-  const statusText = connected ? "Connected" : "Offline";
+  const statusText = connected ? "Healthy" : "Unavailable";
+  const channelEntries = Object.entries(health?.channels ?? {});
+  const channelsRunning = channelEntries.filter(([, ch]) => ch.running).length;
+  const channelsConfigured = channelEntries.filter(([, ch]) => ch.configured).length;
 
   return (
     <AppShell>
@@ -61,7 +81,11 @@ export default async function Home() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="OpenClaw Link" value={statusText} hint="gateway status" />
+        <KpiCard
+          label="Gateway Health"
+          value={statusText}
+          hint={`${channelsRunning}/${channelsConfigured} configured channels running`}
+        />
         <KpiCard label="Active Tasks" value={String(doingCount)} hint={`${selectedCount} selected · ${blockedCount} blocked`} />
         <KpiCard label="Scheduled Items" value={String(calendarItems.length)} hint="calendar tasks" />
         <KpiCard label="Memory Docs" value={String(memoryDocs.length)} hint="workspace memory corpus" />
