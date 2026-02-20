@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import type { TaskItem, TaskOwner, TaskStatus } from "@/lib/tasks/types";
+import type { TaskComment, TaskItem, TaskOwner, TaskStatus } from "@/lib/tasks/types";
 
 const statuses: TaskStatus[] = ["inbox", "selected", "doing", "blocked", "done"];
 
@@ -51,18 +51,30 @@ export function TaskBoard() {
 
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [watchNotice, setWatchNotice] = useState<TaskItem[]>([]);
   const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
 
   async function loadTasks() {
     const res = await fetch("/api/tasks", { cache: "no-store" });
     const json = await res.json();
     if (json.ok) {
-      const normalized = (json.tasks as TaskItem[]).map((t) =>
-        t.status === ("next" as TaskStatus) ? ({ ...t, status: "selected" as TaskStatus }) : t
-      );
+      const normalized = (json.tasks as TaskItem[]).map((t) => ({
+        ...t,
+        status: t.status === ("next" as TaskStatus) ? ("selected" as TaskStatus) : t.status,
+        comments: t.comments ?? [],
+      }));
       setTasks(normalized);
     }
     setLoading(false);
+  }
+
+  async function pollWatchService() {
+    const res = await fetch("/api/tasks/watch", { cache: "no-store" });
+    const json = await res.json();
+    if (json.ok) {
+      setWatchNotice((json.newlySelected as TaskItem[]) ?? []);
+    }
   }
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -79,8 +91,14 @@ export function TaskBoard() {
       }
     })();
 
+    void pollWatchService();
+
     const i = setInterval(() => void loadTasks(), 3000);
-    return () => clearInterval(i);
+    const w = setInterval(() => void pollWatchService(), 5000);
+    return () => {
+      clearInterval(i);
+      clearInterval(w);
+    };
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -119,6 +137,10 @@ export function TaskBoard() {
     setDraggedTaskId(null);
   }
 
+  function appendCommentDraft(task: TaskItem, comment: TaskComment): TaskItem {
+    return { ...task, comments: [...(task.comments ?? []), comment] };
+  }
+
   async function saveSelectedTask() {
     if (!selectedTask) return;
     await patchTask(selectedTask.id, {
@@ -126,8 +148,30 @@ export function TaskBoard() {
       description: selectedTask.description,
       owner: selectedTask.owner,
       status: selectedTask.status,
+      comments: selectedTask.comments ?? [],
     });
     setModalOpen(false);
+  }
+
+  async function startTaskWithPlan(task: TaskItem) {
+    const plan = `Implementation plan:\n1) Clarify acceptance criteria\n2) Break work into sub-steps/sub-agents if needed\n3) Implement incrementally\n4) Validate and report outcome`;
+    const ordinal = (task.comments?.length ?? 0) + 1;
+    const marker = task.updatedAt + ordinal;
+    const withComment = appendCommentDraft(
+      { ...task, status: "doing" },
+      {
+        id: `${task.id}-plan-${ordinal}`,
+        body: plan,
+        author: "agent",
+        createdAt: marker,
+        updatedAt: marker,
+      }
+    );
+    await patchTask(task.id, {
+      status: "doing",
+      comments: withComment.comments,
+    });
+    setWatchNotice((prev) => prev.filter((t) => t.id !== task.id));
   }
 
   return (
@@ -159,6 +203,24 @@ export function TaskBoard() {
             Add
           </button>
         </div>
+
+        {watchNotice.length > 0 ? (
+          <div className="mt-3 space-y-2 rounded-lg border border-cyan-300/30 bg-cyan-400/10 p-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-cyan-200">Agent attention needed</p>
+            {watchNotice.map((task) => (
+              <div key={task.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="text-slate-100">{task.title}</span>
+                <button
+                  type="button"
+                  onClick={() => void startTaskWithPlan(task)}
+                  className="rounded border border-cyan-300/40 bg-cyan-400/15 px-2 py-1 text-xs text-cyan-100 hover:bg-cyan-400/25"
+                >
+                  Move to Doing + seed plan
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </article>
 
       <article className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-3">
@@ -193,7 +255,14 @@ export function TaskBoard() {
                     }}
                     className="cursor-pointer rounded-lg border border-white/10 bg-[#111a2d] p-2 hover:border-cyan-300/40"
                   >
-                    <p className="text-sm font-medium text-slate-100">{task.title}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium text-slate-100">{task.title}</p>
+                      {(task.comments?.length ?? 0) > 0 ? (
+                        <span className="rounded border border-violet-300/35 bg-violet-400/10 px-1.5 py-0.5 text-[10px] text-violet-200">
+                          {(task.comments?.length ?? 0)}
+                        </span>
+                      ) : null}
+                    </div>
                     {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
                     <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-slate-500">
                       <span className={`rounded border px-1.5 py-0.5 ${ownerTone(task.owner)}`}>
@@ -248,6 +317,60 @@ export function TaskBoard() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <h4 className="mb-2 text-sm font-semibold text-slate-100">Comments</h4>
+              <div className="space-y-2">
+                {(selectedTask.comments ?? []).map((comment, idx) => (
+                  <div key={comment.id} className="rounded border border-white/10 bg-black/25 p-2">
+                    <div className="mb-1 flex items-center justify-between text-[10px] text-slate-400">
+                      <span>{comment.author === "agent" ? nicknames.agent : nicknames.operator}</span>
+                      <span>{new Date(comment.updatedAt).toLocaleString()}</span>
+                    </div>
+                    <textarea
+                      value={comment.body}
+                      onChange={(e) => {
+                        const next = [...(selectedTask.comments ?? [])];
+                        next[idx] = { ...next[idx], body: e.target.value, updatedAt: Date.now() };
+                        setSelectedTask({ ...selectedTask, comments: next });
+                      }}
+                      rows={3}
+                      className="w-full rounded border border-white/15 bg-black/20 px-2 py-1 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-2 flex gap-2">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={2}
+                  placeholder="Add a comment..."
+                  className="flex-1 rounded border border-white/15 bg-black/20 px-2 py-1 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newComment.trim()) return;
+                    const ordinal = (selectedTask.comments?.length ?? 0) + 1;
+                    const marker = selectedTask.updatedAt + ordinal;
+                    const updated = appendCommentDraft(selectedTask, {
+                      id: `${selectedTask.id}-comment-${ordinal}`,
+                      body: newComment.trim(),
+                      author: "agent",
+                      createdAt: marker,
+                      updatedAt: marker,
+                    });
+                    setSelectedTask(updated);
+                    setNewComment("");
+                  }}
+                  className="rounded border border-cyan-300/35 bg-cyan-400/15 px-3 py-2 text-xs text-cyan-100 hover:bg-cyan-400/25"
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             <button

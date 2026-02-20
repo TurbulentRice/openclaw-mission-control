@@ -40,7 +40,8 @@ export async function listTasks(): Promise<TaskItem[]> {
   await ensureStore();
   const raw = await fs.readFile(dataPath, "utf8");
   const parsed = JSON.parse(raw) as TaskItem[];
-  return parsed.sort((a, b) => b.updatedAt - a.updatedAt);
+  const normalized = parsed.map((t) => ({ ...t, comments: t.comments ?? [] }));
+  return normalized.sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export async function createTask(input: CreateTaskInput): Promise<TaskItem> {
@@ -52,6 +53,7 @@ export async function createTask(input: CreateTaskInput): Promise<TaskItem> {
     description: input.description,
     owner: input.owner,
     status: input.status ?? "inbox",
+    comments: [],
     createdAt: now,
     updatedAt: now,
   };
