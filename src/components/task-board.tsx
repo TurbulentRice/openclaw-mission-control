@@ -3,17 +3,29 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { TaskItem, TaskOwner, TaskStatus } from "@/lib/tasks/types";
 
-const statuses: TaskStatus[] = ["inbox", "next", "doing", "blocked", "done"];
+const statuses: TaskStatus[] = ["inbox", "selected", "doing", "blocked", "done"];
 
 const statusLabel: Record<TaskStatus, string> = {
   inbox: "Inbox",
-  next: "Next",
+  selected: "Selected",
   doing: "Doing",
   blocked: "Blocked",
   done: "Done",
 };
 
-// owner labels come from Settings API
+const statusHeaderStyle: Record<TaskStatus, string> = {
+  inbox: "border-slate-300/30 bg-slate-400/10",
+  selected: "border-cyan-300/40 bg-cyan-400/10",
+  doing: "border-emerald-300/40 bg-emerald-400/10",
+  blocked: "border-rose-300/40 bg-rose-400/10",
+  done: "border-violet-300/40 bg-violet-400/10",
+};
+
+function ownerTone(owner: TaskOwner) {
+  return owner === "agent"
+    ? "border-cyan-300/30 bg-cyan-400/10 text-cyan-200"
+    : "border-amber-300/30 bg-amber-400/10 text-amber-200";
+}
 
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null;
@@ -44,7 +56,12 @@ export function TaskBoard() {
   async function loadTasks() {
     const res = await fetch("/api/tasks", { cache: "no-store" });
     const json = await res.json();
-    if (json.ok) setTasks(json.tasks as TaskItem[]);
+    if (json.ok) {
+      const normalized = (json.tasks as TaskItem[]).map((t) =>
+        t.status === ("next" as TaskStatus) ? ({ ...t, status: "selected" as TaskStatus }) : t
+      );
+      setTasks(normalized);
+    }
     setLoading(false);
   }
 
@@ -117,7 +134,7 @@ export function TaskBoard() {
     <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
       <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
         <h3 className="text-xl font-semibold">Tasks</h3>
-        <p className="mt-1 text-sm text-slate-300">Shared mission board for Operator + Agent. Drag between columns or click a task for full details.</p>
+        <p className="mt-1 text-sm text-slate-300">Shared mission board for {nicknames.operator} + {nicknames.agent}. Drag between columns or click a task for full details.</p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
@@ -155,12 +172,12 @@ export function TaskBoard() {
                 void moveTaskToStatus(status);
               }}
               className={`flex min-h-0 flex-col rounded-2xl border p-3 transition ${
-                draggedTaskId ? "border-cyan-300/40 bg-cyan-400/5" : "border-white/10 bg-black/20"
+                draggedTaskId ? "border-cyan-300/40 bg-cyan-400/5" : statusHeaderStyle[status]
               }`}
             >
               <div className="mb-2 flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-slate-200">{statusLabel[status]}</h4>
-                <span className="text-xs text-slate-400">{grouped[status]?.length ?? 0}</span>
+                <h4 className="text-sm font-semibold text-slate-100">{statusLabel[status]}</h4>
+                <span className="rounded border border-white/20 px-1.5 py-0.5 text-xs text-slate-200">{grouped[status]?.length ?? 0}</span>
               </div>
 
               <div className="space-y-2 overflow-auto pr-1">
@@ -176,10 +193,15 @@ export function TaskBoard() {
                     }}
                     className="cursor-pointer rounded-lg border border-white/10 bg-[#111a2d] p-2 hover:border-cyan-300/40"
                   >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] ${ownerTone(task.owner)}`}>
+                        {task.owner === "agent" ? nicknames.agent : nicknames.operator}
+                      </span>
+                    </div>
                     <p className="text-sm font-medium text-slate-100">{task.title}</p>
                     {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
                     <p className="mt-2 text-[10px] text-slate-500">
-                      Assigned: {task.owner === "agent" ? nicknames.agent : nicknames.operator} · Updated {new Date(task.updatedAt).toLocaleTimeString()}
+                      Updated {new Date(task.updatedAt).toLocaleTimeString()}
                     </p>
                   </article>
                 ))}

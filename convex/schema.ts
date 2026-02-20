@@ -8,7 +8,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     status: v.union(
       v.literal("inbox"),
-      v.literal("next"),
+      v.literal("selected"),
       v.literal("doing"),
       v.literal("blocked"),
       v.literal("done")

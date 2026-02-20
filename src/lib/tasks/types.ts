@@ -1,4 +1,4 @@
-export type TaskStatus = "inbox" | "next" | "doing" | "blocked" | "done";
+export type TaskStatus = "inbox" | "selected" | "doing" | "blocked" | "done";
 export type TaskOwner = "operator" | "agent";
 
 export interface TaskItem {
