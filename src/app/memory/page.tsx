@@ -17,6 +17,7 @@ export default function MemoryPage() {
   const [query, setQuery] = useState("");
   const [docs, setDocs] = useState<MemoryDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
 
   async function load(q?: string) {
     const params = new URLSearchParams();
@@ -27,6 +28,7 @@ export default function MemoryPage() {
     const json = await res.json();
     if (json.ok) setDocs(json.docs as MemoryDoc[]);
     setLoading(false);
+    setSearching(false);
   }
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -36,16 +38,26 @@ export default function MemoryPage() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
+    setSearching(true);
     const t = setTimeout(() => {
       void load(query);
-    }, 220);
+    }, 180);
     return () => clearTimeout(t);
   }, [query]);
 
   const resultLabel = useMemo(() => {
     if (loading) return "Loading memories...";
+    if (searching) return "Searching...";
     return `${docs.length} memory document${docs.length === 1 ? "" : "s"}`;
-  }, [docs.length, loading]);
+  }, [docs.length, loading, searching]);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return docs.slice(0, 8);
+    return docs
+      .filter((d) => `${d.title} ${d.filePath}`.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [docs, query]);
 
   return (
     <AppShell>
@@ -59,8 +71,14 @@ export default function MemoryPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search memories..."
+              list="memory-suggestions"
               className="w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm outline-none ring-cyan-300/40 placeholder:text-slate-400 focus:ring"
             />
+            <datalist id="memory-suggestions">
+              {suggestions.map((doc) => (
+                <option key={doc.id} value={doc.title} />
+              ))}
+            </datalist>
             <span className="text-xs text-slate-300 sm:whitespace-nowrap">{resultLabel}</span>
           </div>
         </article>
