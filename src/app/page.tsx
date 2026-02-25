@@ -1,9 +1,24 @@
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { KpiCard } from "@/components/ui/kpi-card";
+import { CopyButton } from "@/components/ui/copy-button";
 import { listTasks } from "@/lib/tasks/store";
 import { listCalendarItems } from "@/lib/calendar/store";
 import { listMemoryDocs } from "@/lib/memory/store";
+
+const templatePrompt = `You are my OpenClaw bot working with Mission Control at http://localhost:3000.
+
+Operating loop (every heartbeat):
+1) GET http://localhost:3000/api/tasks (cache: no-store)
+2) Pick tasks where owner=\"agent\" and status in [\"selected\", \"doing\", \"blocked\"]
+3) Execute next task and post progress by PATCH http://localhost:3000/api/tasks/:id
+
+Handoff workflow:
+- When starting work: set status=\"doing\", active=true
+- Add implementation notes/decisions in comments[]
+- If waiting on me: set status=\"blocked\" with clear unblock request
+- When completed: set status=\"done\", active=false, include final summary comment
+- If reassignment needed: set owner=\"operator\" and describe the handoff in comments[]`;
 
 async function getOverviewData() {
   const [tasks, calendarItems, memoryDocs] = await Promise.all([
@@ -54,6 +69,43 @@ export default async function Home() {
         <KpiCard label="Runtime" value="Localhost" hint="fast local-first dashboard" />
       </section>
 
+      <section className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
+        <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-lg font-medium">Connect OpenClaw Bot → Mission Control</h3>
+            <CopyButton text={templatePrompt} label="Copy template prompt" />
+          </div>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-200">
+            <li>Run Mission Control locally: <code className="rounded bg-black/30 px-1 py-0.5">npm run dev</code></li>
+            <li>Confirm app is reachable at <code className="rounded bg-black/30 px-1 py-0.5">http://localhost:3000</code></li>
+            <li>Paste the template prompt into your OpenClaw bot/system instructions</li>
+            <li>Use heartbeat cadence (15–30s) to poll <code className="rounded bg-black/30 px-1 py-0.5">GET /api/tasks</code></li>
+            <li>Update task state via <code className="rounded bg-black/30 px-1 py-0.5">PATCH /api/tasks/:id</code> for every handoff</li>
+          </ol>
+        </article>
+
+        <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+          <h3 className="text-lg font-medium">Handoff Rules</h3>
+          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+            <li>• <span className="text-slate-100">selected → doing</span> when agent begins work</li>
+            <li>• Set <span className="text-slate-100">active=true</span> on in-flight work</li>
+            <li>• Append progress notes to <span className="text-slate-100">comments[]</span> on each checkpoint</li>
+            <li>• Use <span className="text-slate-100">blocked</span> with explicit unblock request</li>
+            <li>• On completion, set <span className="text-slate-100">done</span> + final summary comment</li>
+          </ul>
+        </article>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h3 className="text-lg font-medium">Template Prompt</h3>
+          <CopyButton text={templatePrompt} />
+        </div>
+        <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-4 text-xs text-slate-200">
+          <code>{templatePrompt}</code>
+        </pre>
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
           <h3 className="text-lg font-medium">Quick Actions</h3>
@@ -80,34 +132,6 @@ export default async function Home() {
             <li>• Selected: {selectedCount}</li>
             <li>• Doing: {doingCount}</li>
             <li>• Blocked: {blockedCount}</li>
-          </ul>
-        </article>
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-2">
-        <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-          <h3 className="text-lg font-medium">Recent Focus</h3>
-          <div className="mt-3 space-y-2">
-            {tasks.slice(0, 4).map((task) => (
-              <div key={task.id} className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <p className="text-sm font-medium text-slate-100">{task.title}</p>
-                <p className="mt-1 text-xs text-slate-400">
-                  {task.status} · {task.owner} · updated {new Date(task.updatedAt).toLocaleString()}
-                </p>
-              </div>
-            ))}
-            {tasks.length === 0 ? (
-              <p className="text-sm text-slate-500">No tasks yet.</p>
-            ) : null}
-          </div>
-        </article>
-
-        <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-          <h3 className="text-lg font-medium">Status Notes</h3>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-300">
-            <li>Localhost-only runtime is active</li>
-            <li>OpenClaw API remains the source of truth for bot runtime state</li>
-            <li>Mission Control handles planning, tracking, and operator overlays</li>
           </ul>
         </article>
       </section>
