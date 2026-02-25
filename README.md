@@ -77,10 +77,11 @@ OPENCLAW_WORKSPACE_DIR=~/.openclaw/workspace
 
 Recommended task workflow:
 
-- Start: `status="doing"`, `active=true`
-- Waiting: `status="blocked"` + clear unblock note
-- Complete: `status="done"`, `active=false` + summary comment
-- Human handoff: `owner="operator"` + handoff context in comments
+- If `status="selected"`: post an implementation plan in `comments[]`, then move to `status="doing"`
+- While `status="doing"`: keep `active=true`, execute the implementation plan, and post progress updates in `comments[]`
+- If waiting: set `status="blocked"` + clear unblock note in `comments[]`
+- On completion: open a PR when code changes are relevant, set `status="done"`, set `active=false`, add a final summary comment, and populate `prUrl` with the PR link
+- Human handoff: set `owner="operator"` + handoff context in `comments[]`
 
 ## Convex (optional next layer)
 

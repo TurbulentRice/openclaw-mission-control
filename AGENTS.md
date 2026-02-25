@@ -59,19 +59,21 @@ Recommended heartbeat cadence: every 15–30s.
 4. Persist state via `PATCH /api/tasks/:id`
 
 Status conventions:
-- Start work → `status="doing"`, `active=true`
-- Waiting on operator → `status="blocked"` + concrete unblock request in comments
-- Finished → `status="done"`, `active=false` + short completion summary
-- Reassign to human → `owner="operator"` + handoff context in comments
+- If `status="selected"` → add an implementation plan comment, then move to `status="doing"`
+- While `status="doing"` → keep `active=true`, execute implementation work, and post progress comments
+- Waiting on operator → set `status="blocked"` + concrete unblock request in comments
+- Finished → open PR when relevant, set `status="done"`, set `active=false`, add short completion summary, and set `prUrl` to the PR link
+- Reassign to human → set `owner="operator"` + handoff context in comments
 
 ## 5) PR link field on tasks
 
 Task cards support optional `prUrl`.
 
-When a task maps to code delivery:
-1. Add PR URL in Task Details (`prUrl`).
-2. Keep status lifecycle accurate (`doing/blocked/done`).
-3. Add a comment summarizing implementation and review status.
+When a task maps to code delivery, PR creation is part of completion:
+1. Open a PR before/when moving the task to `done`.
+2. Save the PR URL in Task Details (`prUrl`).
+3. Add a completion comment summarizing implementation + review status.
+4. Keep lifecycle accurate (`selected → plan comment → doing(active) → done`).
 
 This keeps Mission Control aligned with real engineering progress.
 
