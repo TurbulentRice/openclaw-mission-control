@@ -14,10 +14,10 @@ Operating loop (every heartbeat):
 3) Execute next task and post progress by PATCH http://localhost:38173/api/tasks/:id
 
 Handoff workflow:
-- When starting work: set status=\"doing\", active=true
-- Add implementation notes/decisions in comments[]
+- If task is selected: post implementation plan in comments[], then set status=\"doing\"
+- While doing: keep active=true, execute implementation, and post progress/decisions in comments[]
 - If waiting on me: set status=\"blocked\" with clear unblock request
-- When completed: set status=\"done\", active=false, include final summary comment
+- When completed: open PR when relevant, set status=\"done\", active=false, include final summary comment, and set prUrl to the PR link
 - If reassignment needed: set owner=\"operator\" and describe the handoff in comments[]`;
 
 async function getOverviewData() {
@@ -87,11 +87,11 @@ export default async function Home() {
         <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
           <h3 className="text-lg font-medium">Handoff Rules</h3>
           <ul className="mt-3 space-y-2 text-sm text-slate-300">
-            <li>• <span className="text-slate-100">selected → doing</span> when agent begins work</li>
-            <li>• Set <span className="text-slate-100">active=true</span> on in-flight work</li>
-            <li>• Append progress notes to <span className="text-slate-100">comments[]</span> on each checkpoint</li>
+            <li>• <span className="text-slate-100">selected → plan comment → doing</span></li>
+            <li>• While doing, keep <span className="text-slate-100">active=true</span> and implement</li>
+            <li>• Append progress notes to <span className="text-slate-100">comments[]</span> on checkpoints</li>
             <li>• Use <span className="text-slate-100">blocked</span> with explicit unblock request</li>
-            <li>• On completion, set <span className="text-slate-100">done</span> + final summary comment</li>
+            <li>• On completion, move to <span className="text-slate-100">done</span>, add summary, and set <span className="text-slate-100">prUrl</span> when PR is relevant</li>
           </ul>
         </article>
       </section>

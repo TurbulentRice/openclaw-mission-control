@@ -1,54 +1,43 @@
-# OpenClaw Mission Control (Foundation)
+# OpenClaw Mission Control
 
-Local-first control-plane overlay for OpenClaw.
+A local-first operations console for OpenClaw.
 
-This project is intentionally **not** a replacement for the native OpenClaw dashboard. It is a proactive operations layer for organization, insights, and workflow management.
+Mission Control is **not** a replacement for the native OpenClaw dashboard. It is a focused layer for day-to-day execution: task flow, scheduling, timeline visibility, and memory review.
 
-## Guiding Architecture
+## What it includes
 
-- **OpenClaw API** = source of truth for OpenClaw-native entities (sessions, cron jobs, status, routing, etc.)
-- **Convex** = source of truth for Mission Control app-domain entities (task items, notes, event annotations, decision logs)
-- **Auth model (v1)** = localhost-only access guard
+- **Tasks board** with owner/status workflow, comments, and PR link field
+- **Calendar** views (month/week/day/list) with OpenClaw cron sync and local event editing
+- **Timeline** feed for operational activity
+- **Memory** browser for `MEMORY.md` and `memory/*.md`
+- **Settings** page for operator/agent labels and workspace path
+- **OpenClaw status proxy** and typed client foundation
 
-## Stack
+## Screenshots
 
-- Next.js (App Router, TypeScript, Tailwind)
-- Convex (schema + function stubs for app-domain data)
-- Local middleware guard for localhost-only access
+### Tasks
 
-## Current Foundation
+![Mission Control Tasks board](assets/screenshots/screen_tasks.png)
 
-- Delightful shell UI scaffold (sidebar + overview cards)
-- OpenClaw typed client + API proxy route (`/api/openclaw/status`)
-- Sidebar-routed views: Overview, Timeline, Calendar, Tasks, Memory, Settings
-- App-wide Settings page for operator/agent nicknames and workspace path
-- Memory screen for browsing/searching `MEMORY.md` + `memory/*.md` with markdown rendering
-- Live task board with owner + status workflow (Operator/Agent)
-- Task comments in task details modal (add/edit) + comment count badges on cards
-- Task PR link field (`prUrl`) in task details modal with card-level quick link badge
-- Calendar module with real calendar views (month/week/day/list via FullCalendar)
-- Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads
-- Parsed cron occurrences rendered across history (from `createdAtMs`) and upcoming horizon
-- Calendar item create/edit/delete UI for mission-control scheduled tasks (click-away modals)
-- Cron event details modal (timing, schedule, raw job payload)
-- Drag-and-drop interactions:
-  - move task events in calendar to reschedule
-  - drag tasks between board columns to change status
-- Local task API endpoints:
-  - `GET /api/tasks`
-  - `POST /api/tasks`
-  - `PATCH /api/tasks/:id`
-- Local calendar API endpoint:
-  - `GET /api/calendar`
-- Convex schema (next-layer app domain):
-  - `taskItems`
-  - `missionEvents`
-- Convex function stubs:
-  - `tasks.list`, `tasks.create`
-  - `events.recent`, `events.append`
-- Docs for system boundaries and extension strategy
+### Calendar
 
-## Quick Start
+![Mission Control Calendar view](assets/screenshots/screen_calendar.png)
+
+### Timeline
+
+![Mission Control Timeline view](assets/screenshots/screen_timeline.png)
+
+### Memory
+
+![Mission Control Memory view](assets/screenshots/screen_memory.png)
+
+## Architecture boundaries
+
+- **OpenClaw API**: source of truth for OpenClaw-native entities (sessions, cron jobs, status, routing)
+- **Mission Control local/Convex domain**: source of truth for app-domain entities (task items, mission events, notes)
+- **Auth model (v1)**: localhost-only access guard
+
+## Quick start
 
 ```bash
 npm install
@@ -56,29 +45,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open: http://localhost:38173
-
-## Connect your OpenClaw bot in 2 minutes
-
-1. Start Mission Control locally (`npm run dev`).
-2. Open Overview (`/`) and click **Copy template prompt**.
-3. Paste that prompt into your bot's system instructions.
-4. Have the bot poll `GET /api/tasks` on each heartbeat (recommended every 15–30s).
-5. Have the bot update work state with `PATCH /api/tasks/:id` as it starts, blocks, hands off, and completes.
-
-### Task API contract for heartbeat loops
-
-- `GET /api/tasks` → returns `{ ok, tasks }`
-- `POST /api/tasks` → create task with `title`, `owner`, optional `description`, `status`
-- `PATCH /api/tasks/:id` → update `title`, `description`, `owner`, `status`, `active`, `comments`
-
-### Recommended handoff workflow
-
-- Start work: set `status="doing"`, `active=true`
-- Progress updates: append checkpoint notes to `comments[]`
-- Waiting on operator: set `status="blocked"` with explicit unblock request
-- Complete: set `status="done"`, `active=false`, add final summary comment
-- Reassign to human: set `owner="operator"` and document handoff in comments
+Open: `http://localhost:38173`
 
 ## Environment
 
@@ -91,34 +58,48 @@ OPENCLAW_TOKEN=your_gateway_token_here
 OPENCLAW_WORKSPACE_DIR=~/.openclaw/workspace
 ```
 
-## Convex Setup (when ready)
+## API surface (current)
 
-> Convex auth/deployment is intentionally left explicit for operator control.
+- `GET /api/openclaw/status`
+- `GET /api/tasks`
+- `POST /api/tasks`
+- `PATCH /api/tasks/:id`
+- `GET /api/calendar`
+- `GET /api/timeline`
+- `GET /api/memory`
+- `GET/PATCH /api/settings`
+
+## Bot integration (heartbeat loop)
+
+1. Start Mission Control (`npm run dev`).
+2. Use `GET /api/tasks` during heartbeat cadence (for example every 15–30s).
+3. Update task state with `PATCH /api/tasks/:id` as work progresses.
+
+Recommended task workflow:
+
+- If `status="selected"`: post an implementation plan in `comments[]`, then move to `status="doing"`
+- While `status="doing"`: keep `active=true`, execute the implementation plan, and post progress updates in `comments[]`
+- If waiting: set `status="blocked"` + clear unblock note in `comments[]`
+- On completion: open a PR when code changes are relevant, set `status="done"`, set `active=false`, add a final summary comment, and populate `prUrl` with the PR link
+- Human handoff: set `owner="operator"` + handoff context in `comments[]`
+
+## Convex (optional next layer)
+
+Convex is scaffolded for app-domain expansion and can be enabled when needed:
 
 ```bash
-npx convex dev
+npm run convex:dev
 ```
-
-This generates `convex/_generated/*` and starts Convex dev workflow.
 
 ## Scripts
 
-- `npm run dev` – start Next.js dev server
-- `npm run build` – production build
-- `npm run lint` – lint
+- `npm run dev` — start local dev server on port `38173`
+- `npm run build` — production build
+- `npm run start` — run production build on port `38173`
+- `npm run lint` — lint codebase
+- `npm run convex:dev` — start Convex dev workflow
+- `npm run convex:deploy` — deploy Convex functions
 
-## Design Intent
+## Design intent
 
-Mission Control should feel:
-- calm under pressure,
-- high-signal,
-- operationally trustworthy,
-- easy to extend without architecture rewrites.
-
-## Next Feature Prompts
-
-Good first slices (for follow-up prompts):
-1. real-time event timeline and alerting semantics
-2. cron mission planner with objective metadata
-3. task extraction from digest outputs
-4. intervention console (pause/retry/reroute) with audit logs
+Mission Control should feel calm under pressure, high-signal, and easy to extend without architecture rewrites.
