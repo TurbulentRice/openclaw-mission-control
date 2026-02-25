@@ -48,6 +48,28 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
   );
 }
 
+function ExpandableText({ text, limit = 1000, emptyLabel = "—" }: { text?: string; limit?: number; emptyLabel?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const value = text ?? "";
+  const shouldClamp = value.length > limit;
+  const display = !shouldClamp || expanded ? value : `${value.slice(0, limit)}…`;
+
+  return (
+    <div className="space-y-1">
+      <p className="whitespace-pre-wrap break-words text-xs text-slate-200">{display || emptyLabel}</p>
+      {shouldClamp ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="text-[11px] text-cyan-200 hover:text-cyan-100"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function TaskBoard() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +81,8 @@ export function TaskBoard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [nicknames, setNicknames] = useState({ operator: "Operator", agent: "Agent" });
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
   async function loadTasks() {
     const res = await fetch("/api/tasks", { cache: "no-store" });
@@ -211,6 +235,8 @@ export function TaskBoard() {
                     onDragEnd={() => setDraggedTaskId(null)}
                     onClick={() => {
                       setSelectedTask(task);
+                      setEditingDescription(false);
+                      setEditingCommentId(null);
                       setModalOpen(true);
                     }}
                     className="cursor-pointer rounded-lg border border-white/10 bg-[#111a2d] p-2 hover:border-cyan-300/40"
@@ -261,7 +287,15 @@ export function TaskBoard() {
         </div>
       </article>
 
-      <Modal open={modalOpen && !!selectedTask} onClose={() => setModalOpen(false)} title="Task Details">
+      <Modal
+        open={modalOpen && !!selectedTask}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingDescription(false);
+          setEditingCommentId(null);
+        }}
+        title="Task Details"
+      >
         {!selectedTask ? null : (
           <div className="space-y-3">
             <input
@@ -269,13 +303,29 @@ export function TaskBoard() {
               onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })}
               className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm"
             />
-            <textarea
-              value={selectedTask.description ?? ""}
-              onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })}
-              rows={5}
-              className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm"
-              placeholder="Description"
-            />
+            <div className="rounded border border-white/15 bg-black/20 px-3 py-2">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-xs uppercase tracking-wide text-slate-300">Task Details</span>
+                <button
+                  type="button"
+                  onClick={() => setEditingDescription((prev) => !prev)}
+                  className="rounded border border-white/15 px-2 py-1 text-[11px] text-slate-200 hover:bg-white/10"
+                >
+                  {editingDescription ? "Done editing" : "Edit details"}
+                </button>
+              </div>
+              {editingDescription ? (
+                <textarea
+                  value={selectedTask.description ?? ""}
+                  onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })}
+                  rows={Math.max(5, (selectedTask.description?.match(/\n/g)?.length ?? 0) + 3)}
+                  className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm"
+                  placeholder="Description"
+                />
+              ) : (
+                <ExpandableText text={selectedTask.description ?? ""} limit={1200} emptyLabel="No details yet." />
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <select
                 value={selectedTask.owner}
@@ -320,37 +370,53 @@ export function TaskBoard() {
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <h4 className="mb-2 text-sm font-semibold text-slate-100">Comments</h4>
               <div className="max-h-72 space-y-2 overflow-auto pr-1">
-                {(selectedTask.comments ?? []).map((comment, idx) => (
-                  <div key={comment.id} className="rounded border border-white/10 bg-black/25 p-2">
-                    <div className="mb-1 flex items-center justify-between text-[10px] text-slate-400">
-                      <span>{comment.author === "agent" ? nicknames.agent : nicknames.operator}</span>
-                      <div className="flex items-center gap-2">
-                        <span>{new Date(comment.updatedAt).toLocaleString()}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
+                {(selectedTask.comments ?? []).map((comment, idx) => {
+                  const isEditing = editingCommentId === comment.id;
+                  return (
+                    <div key={comment.id} className="rounded border border-white/10 bg-black/25 p-2">
+                      <div className="mb-1 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>{comment.author === "agent" ? nicknames.agent : nicknames.operator}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{comment.body.length} chars</span>
+                          <span>{new Date(comment.updatedAt).toLocaleString()}</span>
+                          <button
+                            type="button"
+                            onClick={() => setEditingCommentId(isEditing ? null : comment.id)}
+                            className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-200 hover:bg-white/10"
+                          >
+                            {isEditing ? "Done" : "Edit"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = [...(selectedTask.comments ?? [])];
+                              next.splice(idx, 1);
+                              setSelectedTask({ ...selectedTask, comments: next });
+                              if (isEditing) setEditingCommentId(null);
+                            }}
+                            className="rounded border border-rose-300/35 bg-rose-500/15 px-1.5 py-0.5 text-[10px] text-rose-200 hover:bg-rose-500/25"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      {isEditing ? (
+                        <textarea
+                          value={comment.body}
+                          onChange={(e) => {
                             const next = [...(selectedTask.comments ?? [])];
-                            next.splice(idx, 1);
+                            next[idx] = { ...next[idx], body: e.target.value, updatedAt: Date.now() };
                             setSelectedTask({ ...selectedTask, comments: next });
                           }}
-                          className="rounded border border-rose-300/35 bg-rose-500/15 px-1.5 py-0.5 text-[10px] text-rose-200 hover:bg-rose-500/25"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                          rows={Math.max(3, (comment.body.match(/\n/g)?.length ?? 0) + 2)}
+                          className="w-full rounded border border-white/15 bg-black/20 px-2 py-1 text-xs"
+                        />
+                      ) : (
+                        <ExpandableText text={comment.body} limit={800} emptyLabel="(empty comment)" />
+                      )}
                     </div>
-                    <textarea
-                      value={comment.body}
-                      onChange={(e) => {
-                        const next = [...(selectedTask.comments ?? [])];
-                        next[idx] = { ...next[idx], body: e.target.value, updatedAt: Date.now() };
-                        setSelectedTask({ ...selectedTask, comments: next });
-                      }}
-                      rows={Math.max(3, Math.min(12, (comment.body.match(/\n/g)?.length ?? 0) + 2))}
-                      className="w-full rounded border border-white/15 bg-black/20 px-2 py-1 text-xs"
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-2 flex gap-2">
