@@ -26,6 +26,13 @@ function ownerTone(owner: TaskOwner) {
     : "border-amber-300/30 bg-amber-400/10 text-amber-200";
 }
 
+function normalizePrUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null;
   return (
@@ -61,6 +68,7 @@ export function TaskBoard() {
         ...t,
         status: t.status === ("next" as TaskStatus) ? ("selected" as TaskStatus) : t.status,
         active: t.active ?? false,
+        prUrl: t.prUrl ?? "",
         comments: t.comments ?? [],
       }));
       setTasks(normalized);
@@ -134,6 +142,7 @@ export function TaskBoard() {
       owner: selectedTask.owner,
       status: selectedTask.status,
       active: selectedTask.active ?? false,
+      prUrl: normalizePrUrl(selectedTask.prUrl ?? ""),
       comments: selectedTask.comments ?? [],
     });
     setModalOpen(false);
@@ -222,6 +231,18 @@ export function TaskBoard() {
                       ) : null}
                     </div>
                     {task.description ? <p className="mt-1 line-clamp-2 text-xs text-slate-400">{task.description}</p> : null}
+                    {task.prUrl ? (
+                      <a
+                        href={task.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-2 inline-flex max-w-full items-center rounded border border-indigo-300/35 bg-indigo-400/10 px-1.5 py-0.5 text-[10px] text-indigo-200 hover:bg-indigo-400/20"
+                        title={task.prUrl}
+                      >
+                        <span className="truncate">PR Link</span>
+                      </a>
+                    ) : null}
                     <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-slate-500">
                       <span className={`rounded border px-1.5 py-0.5 ${ownerTone(task.owner)}`}>
                         {task.owner === "agent" ? nicknames.agent : nicknames.operator}
@@ -275,6 +296,16 @@ export function TaskBoard() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-slate-300">PR Link</label>
+              <input
+                value={selectedTask.prUrl ?? ""}
+                onChange={(e) => setSelectedTask({ ...selectedTask, prUrl: e.target.value })}
+                placeholder="https://github.com/org/repo/pull/123"
+                className="w-full rounded border border-white/15 bg-black/20 px-3 py-2 text-sm"
+              />
             </div>
 
             <label className="flex items-center gap-2 rounded border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-200">
