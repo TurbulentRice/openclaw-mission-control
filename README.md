@@ -56,7 +56,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open: http://localhost:3000
+Open: http://localhost:38173
 
 ## Connect your OpenClaw bot in 2 minutes
 

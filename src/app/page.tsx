@@ -6,12 +6,12 @@ import { listTasks } from "@/lib/tasks/store";
 import { listCalendarItems } from "@/lib/calendar/store";
 import { listMemoryDocs } from "@/lib/memory/store";
 
-const templatePrompt = `You are my OpenClaw bot working with Mission Control at http://localhost:3000.
+const templatePrompt = `You are my OpenClaw bot working with Mission Control at http://localhost:38173.
 
 Operating loop (every heartbeat):
-1) GET http://localhost:3000/api/tasks (cache: no-store)
+1) GET http://localhost:38173/api/tasks (cache: no-store)
 2) Pick tasks where owner=\"agent\" and status in [\"selected\", \"doing\", \"blocked\"]
-3) Execute next task and post progress by PATCH http://localhost:3000/api/tasks/:id
+3) Execute next task and post progress by PATCH http://localhost:38173/api/tasks/:id
 
 Handoff workflow:
 - When starting work: set status=\"doing\", active=true
@@ -77,7 +77,7 @@ export default async function Home() {
           </div>
           <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-200">
             <li>Run Mission Control locally: <code className="rounded bg-black/30 px-1 py-0.5">npm run dev</code></li>
-            <li>Confirm app is reachable at <code className="rounded bg-black/30 px-1 py-0.5">http://localhost:3000</code></li>
+            <li>Confirm app is reachable at <code className="rounded bg-black/30 px-1 py-0.5">http://localhost:38173</code></li>
             <li>Paste the template prompt into your OpenClaw bot/system instructions</li>
             <li>Use heartbeat cadence (15–30s) to poll <code className="rounded bg-black/30 px-1 py-0.5">GET /api/tasks</code></li>
             <li>Update task state via <code className="rounded bg-black/30 px-1 py-0.5">PATCH /api/tasks/:id</code> for every handoff</li>
