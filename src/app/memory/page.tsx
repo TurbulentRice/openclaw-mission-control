@@ -60,8 +60,8 @@ export default function MemoryPage() {
 
   return (
     <AppShell>
-      <section className="space-y-4">
-        <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
+      <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
+        <article className="shrink-0 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
           <h2 className="text-2xl font-semibold">Memory</h2>
           <p className="mt-1 text-sm text-slate-300">Search and browse memory documents from your OpenClaw workspace.</p>
 
@@ -85,8 +85,8 @@ export default function MemoryPage() {
           </div>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="grid gap-3">
+        <article className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="grid h-full gap-3 overflow-auto pr-1">
             {docs.map((doc) => (
               <article key={doc.id} className="rounded-xl border border-white/10 bg-[#101a2d] p-4 shadow-sm">
                 <div className="mb-2 flex items-start justify-between gap-3">

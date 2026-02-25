@@ -25,6 +25,7 @@ export interface CronSnapshot {
     lastStatus?: string;
     lastDurationMs?: number;
     consecutiveErrors?: number;
+    lastError?: string;
   };
   schedule?: {
     kind?: string;

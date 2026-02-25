@@ -25,6 +25,7 @@ This project is intentionally **not** a replacement for the native OpenClaw dash
 - Memory screen for browsing/searching `MEMORY.md` + `memory/*.md` with markdown rendering
 - Live task board with owner + status workflow (Operator/Agent)
 - Task comments in task details modal (add/edit) + comment count badges on cards
+- Task PR link field (`prUrl`) in task details modal with card-level quick link badge
 - Calendar module with real calendar views (month/week/day/list via FullCalendar)
 - Live OpenClaw cron sync (`openclaw cron list --all --json`) with stale-while-refresh cache invalidation for fast calendar loads
 - Parsed cron occurrences rendered across history (from `createdAtMs`) and upcoming horizon
@@ -55,7 +56,29 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open: http://localhost:3000
+Open: http://localhost:38173
+
+## Connect your OpenClaw bot in 2 minutes
+
+1. Start Mission Control locally (`npm run dev`).
+2. Open Overview (`/`) and click **Copy template prompt**.
+3. Paste that prompt into your bot's system instructions.
+4. Have the bot poll `GET /api/tasks` on each heartbeat (recommended every 15–30s).
+5. Have the bot update work state with `PATCH /api/tasks/:id` as it starts, blocks, hands off, and completes.
+
+### Task API contract for heartbeat loops
+
+- `GET /api/tasks` → returns `{ ok, tasks }`
+- `POST /api/tasks` → create task with `title`, `owner`, optional `description`, `status`
+- `PATCH /api/tasks/:id` → update `title`, `description`, `owner`, `status`, `active`, `comments`
+
+### Recommended handoff workflow
+
+- Start work: set `status="doing"`, `active=true`
+- Progress updates: append checkpoint notes to `comments[]`
+- Waiting on operator: set `status="blocked"` with explicit unblock request
+- Complete: set `status="done"`, `active=false`, add final summary comment
+- Reassign to human: set `owner="operator"` and document handoff in comments
 
 ## Environment
 

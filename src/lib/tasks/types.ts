@@ -15,6 +15,9 @@ export interface TaskItem {
   description?: string;
   status: TaskStatus;
   owner: TaskOwner;
+  active?: boolean;
+  /** Optional link to a pull request related to this task. */
+  prUrl?: string;
   comments?: TaskComment[];
   createdAt: number;
   updatedAt: number;
@@ -32,5 +35,7 @@ export interface UpdateTaskInput {
   description?: string;
   owner?: TaskOwner;
   status?: TaskStatus;
+  active?: boolean;
+  prUrl?: string;
   comments?: TaskComment[];
 }
