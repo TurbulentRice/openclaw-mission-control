@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { TimelineEvent, TimelineEventKind, TimelineEventSource } from "@/lib/timeline/types";
+import type { TimelineEvent, TimelineEventKind, TimelineEventSource, TimelineSourceStatus } from "@/lib/timeline/types";
 
 interface TimelineResponse {
   ok: boolean;
   events: TimelineEvent[];
   generatedAtMs: number;
   warnings: string[];
-  sources: Record<string, "ok" | "error">;
+  sources: Record<string, TimelineSourceStatus>;
 }
 
 const sourceOptions: Array<TimelineEventSource | "all"> = ["all", "openclaw", "mission_control", "memory"];
@@ -19,19 +19,20 @@ const kindOptions: Array<TimelineEventKind | "all"> = [
   "task_update",
   "calendar_item",
   "memory_update",
-  "system_status",
 ];
 
+function startOfLocalDay(ms: number) {
+  const d = new Date(ms);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
 function bucketLabel(ts: number) {
-  const now = new Date();
-  const d = new Date(ts);
+  const todayStart = startOfLocalDay(Date.now());
+  const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
 
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
-
-  if (ts >= startOfToday) return "Today";
-  if (ts >= startOfYesterday) return "Yesterday";
-  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  if (ts >= todayStart && ts < tomorrowStart) return "Today";
+  if (ts >= tomorrowStart) return "Upcoming";
+  return "Past";
 }
 
 function severityStyle(severity: TimelineEvent["severity"]) {
@@ -47,10 +48,33 @@ function severityStyle(severity: TimelineEvent["severity"]) {
   }
 }
 
+function sourceStatusStyle(state: TimelineSourceStatus) {
+  if (state === "ok") return "border-emerald-300/30 bg-emerald-400/10 text-emerald-200";
+  if (state === "degraded") return "border-amber-300/30 bg-amber-400/10 text-amber-200";
+  if (state === "timeout") return "border-amber-300/30 bg-amber-500/10 text-amber-100";
+  if (state === "denied") return "border-rose-300/30 bg-rose-500/10 text-rose-100";
+  return "border-rose-300/30 bg-rose-400/10 text-rose-200";
+}
+
+function extractDetail(event: TimelineEvent) {
+  const metadata = event.metadata;
+  if (!metadata) return null;
+
+  const detailCandidates = ["lastError", "error", "message", "detail", "details", "reason", "status", "preview"];
+  for (const key of detailCandidates) {
+    const value = metadata[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 export function TimelineBoard() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [sources, setSources] = useState<Record<string, "ok" | "error">>({});
+  const [sources, setSources] = useState<Record<string, TimelineSourceStatus>>({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState<TimelineEventSource | "all">("all");
@@ -95,11 +119,13 @@ export function TimelineBoard() {
       current.push(event);
       map.set(label, current);
     }
-    return Array.from(map.entries());
+
+    const order = ["Today", "Upcoming", "Past"];
+    return order.filter((label) => map.has(label)).map((label) => [label, map.get(label) ?? []] as const);
   }, [filtered]);
 
   return (
-    <section className="space-y-4">
+    <section className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-4">
       <article className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
         <h2 className="text-2xl font-semibold">Timeline</h2>
         <p className="mt-1 text-sm text-slate-300">Running history across OpenClaw cron activity, Mission Control updates, and memory changes.</p>
@@ -135,12 +161,12 @@ export function TimelineBoard() {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <article className="min-h-0 flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <div className="mb-3 flex flex-wrap gap-2 text-xs">
           {Object.entries(sources).map(([key, state]) => (
             <span
               key={key}
-              className={`rounded border px-2 py-1 ${state === "ok" ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" : "border-rose-300/30 bg-rose-400/10 text-rose-200"}`}
+              className={`rounded border px-2 py-1 ${sourceStatusStyle(state)}`}
             >
               {key}: {state}
             </span>
@@ -161,28 +187,45 @@ export function TimelineBoard() {
           <p className="rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-slate-400">No events match your filters yet.</p>
         ) : null}
 
-        <div className="space-y-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-auto pr-1">
           {grouped.map(([label, entries]) => (
             <section key={label}>
               <p className="mb-2 text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
               <div className="space-y-2">
-                {entries.map((event) => (
-                  <article key={event.id} className="rounded-xl border border-white/10 bg-[#101a2d] p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-slate-100">{event.title}</h3>
-                      <div className="flex items-center gap-2">
-                        <span className={`rounded border px-2 py-0.5 text-[10px] uppercase ${severityStyle(event.severity)}`}>{event.severity}</span>
-                        <span className="text-xs text-slate-400">{new Date(event.ts).toLocaleString()}</span>
+                {entries.map((event) => {
+                  const detailText = extractDetail(event);
+                  return (
+                    <article key={event.id} className="rounded-xl border border-white/10 bg-[#101a2d] p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-slate-100">{event.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded border px-2 py-0.5 text-[10px] uppercase ${severityStyle(event.severity)}`}>{event.severity}</span>
+                          <span className="text-xs text-slate-400">{new Date(event.ts).toLocaleString()}</span>
+                        </div>
                       </div>
-                    </div>
-                    <p className="mt-1 text-sm text-slate-300">{event.summary}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {event.tags.slice(0, 6).map((tag) => (
-                        <span key={tag} className="rounded border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] text-slate-300">#{tag}</span>
-                      ))}
-                    </div>
-                  </article>
-                ))}
+                      <p className="mt-1 text-sm text-slate-300">{event.summary}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {event.tags.slice(0, 6).map((tag) => (
+                          <span key={tag} className="rounded border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] text-slate-300">#{tag}</span>
+                        ))}
+                      </div>
+
+                      {event.metadata ? (
+                        <details className="mt-3 rounded-lg border border-white/10 bg-black/20 p-2">
+                          <summary className="cursor-pointer text-xs font-medium text-cyan-200">View details</summary>
+                          {detailText ? (
+                            <p className="mt-2 whitespace-pre-wrap break-words rounded border border-rose-300/25 bg-rose-500/10 p-2 text-xs text-rose-100">
+                              {detailText}
+                            </p>
+                          ) : null}
+                          <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words text-xs text-slate-300">
+                            {JSON.stringify(event.metadata, null, 2)}
+                          </pre>
+                        </details>
+                      ) : null}
+                    </article>
+                  );
+                })}
               </div>
             </section>
           ))}
