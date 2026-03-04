@@ -20,6 +20,14 @@ const statusHeaderStyle: Record<TaskStatus, string> = {
   done: "border-violet-300/40 bg-violet-400/10",
 };
 
+const dateRangeOptions = [
+  { key: "24h", label: "24h", windowMs: 24 * 60 * 60 * 1000 },
+  { key: "7d", label: "7d", windowMs: 7 * 24 * 60 * 60 * 1000 },
+  { key: "30d", label: "30d", windowMs: 30 * 24 * 60 * 60 * 1000 },
+  { key: "all", label: "All time", windowMs: null },
+] as const;
+type DateRangeKey = (typeof dateRangeOptions)[number]["key"];
+
 function ownerTone(owner: TaskOwner) {
   return owner === "agent"
     ? "border-cyan-300/30 bg-cyan-400/10 text-cyan-200"
@@ -75,6 +83,8 @@ export function TaskBoard() {
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState<TaskOwner>("agent");
+  const [dateRange, setDateRange] = useState<DateRangeKey>("all");
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
@@ -97,6 +107,7 @@ export function TaskBoard() {
       }));
       setTasks(normalized);
     }
+    setNowMs(Date.now());
     setLoading(false);
   }
 
@@ -119,12 +130,19 @@ export function TaskBoard() {
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  const filteredTasks = useMemo(() => {
+    const selectedRange = dateRangeOptions.find((opt) => opt.key === dateRange);
+    if (!selectedRange || selectedRange.windowMs === null) return tasks;
+    const cutoff = nowMs - selectedRange.windowMs;
+    return tasks.filter((task) => task.updatedAt >= cutoff);
+  }, [dateRange, nowMs, tasks]);
+
   const grouped = useMemo(() => {
     return statuses.reduce((acc, status) => {
-      acc[status] = tasks.filter((t) => t.status === status);
+      acc[status] = filteredTasks.filter((t) => t.status === status);
       return acc;
     }, {} as Record<TaskStatus, TaskItem[]>);
-  }, [tasks]);
+  }, [filteredTasks]);
 
   async function createTask() {
     if (!title.trim()) return;
@@ -204,7 +222,23 @@ export function TaskBoard() {
           </button>
         </div>
 
-        
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-slate-300">Updated</span>
+          <div className="inline-flex rounded-lg border border-white/15 bg-black/20 p-1">
+            {dateRangeOptions.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setDateRange(opt.key)}
+                className={`rounded px-2 py-1 text-xs transition ${
+                  dateRange === opt.key ? "bg-cyan-400/25 text-cyan-100" : "text-slate-300 hover:bg-white/10"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </article>
 
       <article className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-3">
@@ -273,7 +307,7 @@ export function TaskBoard() {
                       <span className={`rounded border px-1.5 py-0.5 ${ownerTone(task.owner)}`}>
                         {task.owner === "agent" ? nicknames.agent : nicknames.operator}
                       </span>
-                      <span>Updated {new Date(task.updatedAt).toLocaleTimeString()}</span>
+                      <span>Updated {new Date(task.updatedAt).toLocaleString()}</span>
                     </div>
                   </article>
                 ))}
