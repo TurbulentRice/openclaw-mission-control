@@ -5,8 +5,7 @@ export type TimelineEventKind =
   | "cron_scheduled"
   | "task_update"
   | "calendar_item"
-  | "memory_update"
-  | "system_status";
+  | "memory_update";
 
 export type TimelineSeverity = "info" | "success" | "warning" | "error";
 
@@ -22,16 +21,17 @@ export interface TimelineEvent {
   metadata?: Record<string, unknown>;
 }
 
+export type TimelineSourceStatus = "ok" | "timeout" | "denied" | "degraded" | "error";
+
 export interface TimelineFeed {
   ok: boolean;
   events: TimelineEvent[];
   generatedAtMs: number;
   sources: {
-    cron: "ok" | "error";
-    tasks: "ok" | "error";
-    calendar: "ok" | "error";
-    memory: "ok" | "error";
-    openclawStatus: "ok" | "error";
+    cron: TimelineSourceStatus;
+    tasks: TimelineSourceStatus;
+    calendar: TimelineSourceStatus;
+    memory: TimelineSourceStatus;
   };
   warnings: string[];
 }

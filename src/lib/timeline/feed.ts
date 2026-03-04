@@ -1,9 +1,7 @@
 import { listTasks } from "@/lib/tasks/store";
 import { listCalendarItems, listCronSnapshots } from "@/lib/calendar/store";
 import { listMemoryDocs } from "@/lib/memory/store";
-import { openclawRequest } from "@/lib/openclaw/client";
-import type { TimelineEvent, TimelineFeed } from "@/lib/timeline/types";
-import type { OpenClawStatusCard } from "@/lib/types/openclaw";
+import type { TimelineEvent, TimelineFeed, TimelineSourceStatus } from "@/lib/timeline/types";
 
 function truncate(text: string, max = 180) {
   if (text.length <= max) return text;
@@ -13,6 +11,14 @@ function truncate(text: string, max = 180) {
 function statusSeverity(status?: string): TimelineEvent["severity"] {
   if (!status) return "info";
   if (status === "ok" || status === "success") return "success";
+  if (status === "timeout") return "warning";
+  return "error";
+}
+
+function classifySourceError(error: unknown): TimelineSourceStatus {
+  const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  if (msg.includes("timed out") || msg.includes("timeout") || msg.includes("abort")) return "timeout";
+  if (msg.includes("permission") || msg.includes("forbidden") || msg.includes("unauthorized") || msg.includes("denied")) return "denied";
   return "error";
 }
 
@@ -25,15 +31,24 @@ export async function buildTimelineFeed(limit = 250): Promise<TimelineFeed> {
     tasks: "ok",
     calendar: "ok",
     memory: "ok",
-    openclawStatus: "ok",
   };
 
   try {
     const cron = await listCronSnapshots();
+    let hasCronDegradation = false;
+
     for (const job of cron) {
       const lastRunAtMs = job.state?.lastRunAtMs;
       if (lastRunAtMs) {
         const status = job.state?.lastStatus;
+        const consecutiveErrors = typeof job.state?.consecutiveErrors === "number" ? job.state.consecutiveErrors : 0;
+        if (status && status !== "ok" && status !== "success") {
+          hasCronDegradation = true;
+        }
+        if (consecutiveErrors > 0) {
+          hasCronDegradation = true;
+        }
+
         events.push({
           id: `cron-run:${job.id}:${lastRunAtMs}`,
           ts: lastRunAtMs,
@@ -70,8 +85,12 @@ export async function buildTimelineFeed(limit = 250): Promise<TimelineFeed> {
         });
       }
     }
+
+    if (hasCronDegradation) {
+      sources.cron = "degraded";
+    }
   } catch (error) {
-    sources.cron = "error";
+    sources.cron = classifySourceError(error);
     warnings.push(error instanceof Error ? `Cron timeline unavailable: ${error.message}` : "Cron timeline unavailable");
   }
 
@@ -94,7 +113,7 @@ export async function buildTimelineFeed(limit = 250): Promise<TimelineFeed> {
       });
     }
   } catch (error) {
-    sources.tasks = "error";
+    sources.tasks = classifySourceError(error);
     warnings.push(error instanceof Error ? `Task timeline unavailable: ${error.message}` : "Task timeline unavailable");
   }
 
@@ -116,7 +135,7 @@ export async function buildTimelineFeed(limit = 250): Promise<TimelineFeed> {
       });
     }
   } catch (error) {
-    sources.calendar = "error";
+    sources.calendar = classifySourceError(error);
     warnings.push(error instanceof Error ? `Calendar timeline unavailable: ${error.message}` : "Calendar timeline unavailable");
   }
 
@@ -139,27 +158,8 @@ export async function buildTimelineFeed(limit = 250): Promise<TimelineFeed> {
       });
     }
   } catch (error) {
-    sources.memory = "error";
+    sources.memory = classifySourceError(error);
     warnings.push(error instanceof Error ? `Memory timeline unavailable: ${error.message}` : "Memory timeline unavailable");
-  }
-
-  try {
-    const status = await openclawRequest<OpenClawStatusCard>({ path: "/status" });
-    const ok = Boolean(status.ok);
-    events.push({
-      id: `openclaw:status:${Date.now()}`,
-      ts: Date.now(),
-      source: "openclaw",
-      kind: "system_status",
-      severity: ok ? "success" : "warning",
-      title: "OpenClaw gateway status",
-      summary: ok ? "Gateway reachable" : "Gateway responded with warning",
-      tags: ["openclaw", "status", ok ? "ok" : "warning"],
-      metadata: status,
-    });
-  } catch (error) {
-    sources.openclawStatus = "error";
-    warnings.push(error instanceof Error ? `OpenClaw status unavailable: ${error.message}` : "OpenClaw status unavailable");
   }
 
   const sorted = events
